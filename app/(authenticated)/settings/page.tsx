@@ -6,19 +6,15 @@ import {
   Mail, 
   Moon, 
   Sun, 
-  Globe, 
   Shield, 
   User, 
   Save,
   Loader2,
-  CheckCircle,
   Monitor,
-  Smartphone,
   Eye,
-  EyeOff,
-  Volume2,
-  VolumeX
+  EyeOff
 } from 'lucide-react'
+import Link from 'next/link'
 
 interface NotificationPreferences {
   emailEnabled: boolean
@@ -73,7 +69,6 @@ export default function SettingsPage() {
   // Appearance state
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('light')
   const [reducedMotion, setReducedMotion] = useState(false)
-  const [highContrast, setHighContrast] = useState(false)
 
   useEffect(() => {
     fetchUserData()
@@ -83,12 +78,16 @@ export default function SettingsPage() {
 
   const fetchUserData = async () => {
     const token = localStorage.getItem('token')
+    if (!token) return
+    
     try {
       const res = await fetch('/api/user/profile', {
         headers: { Authorization: `Bearer ${token}` }
       })
       const data = await res.json()
-      setProfile(data.user)
+      if (data.user) {
+        setProfile(data.user)
+      }
     } catch (error) {
       console.error('Error fetching profile:', error)
     }
@@ -96,6 +95,11 @@ export default function SettingsPage() {
 
   const fetchNotificationPreferences = async () => {
     const token = localStorage.getItem('token')
+    if (!token) {
+      setLoading(false)
+      return
+    }
+    
     try {
       const res = await fetch('/api/user/notification-preferences', {
         headers: { Authorization: `Bearer ${token}` }
@@ -266,7 +270,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
-                  <p className="text-gray-900 dark:text-white capitalize">{profile.role}</p>
+                  <p className="text-gray-900 dark:text-white capitalize">{profile.role.toLowerCase()}</p>
                 </div>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
                   To change your name or email, please contact support.
@@ -467,12 +471,12 @@ export default function SettingsPage() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Change Password</label>
-                  <a
+                  <Link
                     href="/profile"
                     className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700"
                   >
                     Go to Profile to change your password →
-                  </a>
+                  </Link>
                 </div>
                 <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                   <h3 className="font-medium text-gray-900 dark:text-white mb-2">Active Sessions</h3>
@@ -488,7 +492,14 @@ export default function SettingsPage() {
 }
 
 // Notification Toggle Component
-function NotificationToggle({ label, description, enabled, onToggle }: any) {
+interface NotificationToggleProps {
+  label: string
+  description: string
+  enabled: boolean
+  onToggle: (value: boolean) => void
+}
+
+function NotificationToggle({ label, description, enabled, onToggle }: NotificationToggleProps) {
   return (
     <label className="flex items-center justify-between py-3 cursor-pointer border-b border-gray-100 dark:border-gray-800 last:border-0">
       <div>
