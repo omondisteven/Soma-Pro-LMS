@@ -1,0 +1,380 @@
+// prisma\schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(cuid()) @db.VarChar(125)
+  email     String    @unique @db.VarChar(125)
+  password  String    @db.VarChar(125)
+  name      String    @db.VarChar(125)
+  role      Role      @default(STUDENT)
+  avatar    String?   @db.VarChar(125)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  payments  Payment[]
+
+  // Student-specific fields
+  highSchoolCompleted     Boolean?           @default(false)
+  qualification           QualificationType?
+  qualificationDiscipline String?            @db.VarChar(100)
+
+  // Relationships
+  taughtCourses CourseInstructor[]
+  ownedCourses  Course[]               @relation("CourseTeachers")
+  enrollments   Enrollment[]
+  submissions   AssignmentSubmission[]
+  applications  Application[]
+  quizAttempts  QuizAttempt[]
+  progress      StudentProgress[]
+
+  // Notifications
+  notifications           Notification[]
+  notificationPreferences NotificationPreference?
+}
+
+model Course {
+  id          String @id @default(cuid()) @db.VarChar(125)
+  title       String @db.VarChar(255)
+  shortName   String @db.VarChar(100)
+  description String @db.Text
+
+  price Float @default(0)
+  currency String  @default("KES")
+
+  imageUrl   String?      @db.VarChar(125)
+  category   String       @db.VarChar(100)
+  visibility Visibility   @default(SHOW)
+  startDate  DateTime
+  endDate    DateTime?
+  status     CourseStatus @default(DRAFT)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ownerId String @db.VarChar(125)
+  owner   User   @relation("CourseTeachers", fields: [ownerId], references: [id])
+
+  instructors  CourseInstructor[]
+  sections     Section[]
+  enrollments  Enrollment[]
+  applications Application[]
+  payments     Payment[]
+}
+
+model CourseInstructor {
+  id           String   @id @default(cuid()) @db.VarChar(125)
+  courseId     String   @db.VarChar(125)
+  instructorId String   @db.VarChar(125)
+  addedAt      DateTime @default(now())
+
+  course     Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  instructor User   @relation(fields: [instructorId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, instructorId])
+}
+
+model Section {
+  id          String   @id @default(cuid()) @db.VarChar(125)
+  title       String   @db.VarChar(190)
+  description String?  @db.VarChar(190)
+  order       Int
+  courseId    String   @db.VarChar(125)
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons     Lesson[] // This line must exist
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Lesson {
+  id          String     @id @default(cuid()) @db.VarChar(125)
+  title       String     @db.VarChar(200)
+  description String?    @db.Text
+  type        LessonType
+  content     String?    @db.LongText
+  videoUrl    String?    @db.VarChar(500)
+  attachments Json? // Array of file URLs
+  duration    Int? // Estimated minutes
+  order       Int
+  sectionId   String     @db.VarChar(125)
+  section     Section    @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  isMandatory Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Relationships
+  quiz       Quiz?
+  assignment Assignment?
+  progress   StudentProgress[]
+}
+
+model Quiz {
+  id              String        @id @default(cuid()) @db.VarChar(125)
+  title           String        @db.VarChar(200)
+  description     String?       @db.Text
+  timeLimit       Int? // Minutes
+  passingScore    Float         @default(70)
+  attemptsAllowed Int           @default(1)
+  lessonId        String        @unique @db.VarChar(125)
+  lesson          Lesson        @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  questions       Question[]
+  attempts        QuizAttempt[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model Question {
+  id            String       @id @default(cuid()) @db.VarChar(125)
+  text          String       @db.Text
+  type          QuestionType
+  points        Int          @default(1)
+  options       Json? // For multiple choice/true false
+  correctAnswer String       @db.Text
+  explanation   String?      @db.Text
+  order         Int
+  quizId        String       @db.VarChar(125)
+  quiz          Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  createdAt     DateTime     @default(now())
+}
+
+model QuizAttempt {
+  id          String    @id @default(cuid()) @db.VarChar(125)
+  quizId      String    @db.VarChar(125)
+  quiz        Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  studentId   String    @db.VarChar(125)
+  student     User      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  score       Float?
+  percentage  Float?
+  passed      Boolean?
+  answers     Json? // Store student answers
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  timeSpent   Int? // Seconds
+}
+
+model Assignment {
+  id          String                 @id @default(cuid()) @db.VarChar(125)
+  title       String                 @db.VarChar(200)
+  description String?                @db.Text
+  dueDate     DateTime?
+  maxScore    Float                  @default(100)
+  lessonId    String                 @unique @db.VarChar(125)
+  lesson      Lesson                 @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  submissions AssignmentSubmission[]
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+}
+
+model AssignmentSubmission {
+  id           String     @id @default(cuid()) @db.VarChar(125)
+  assignmentId String     @db.VarChar(125)
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  studentId    String     @db.VarChar(125)
+  student      User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  content      String?    @db.LongText
+  attachments  Json? // Array of file URLs
+  submittedAt  DateTime   @default(now())
+  grade        Float?
+  feedback     String?    @db.Text
+  gradedBy     String?    @db.VarChar(125)
+  gradedAt     DateTime?
+}
+
+model StudentProgress {
+  id           String         @id @default(cuid()) @db.VarChar(125)
+  studentId    String         @db.VarChar(125)
+  student      User           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  lessonId     String         @db.VarChar(125)
+  lesson       Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  status       ProgressStatus @default(NOT_STARTED)
+  score        Float?
+  completedAt  DateTime?
+  timeSpent    Int? // Minutes
+  lastPosition Int? // Scroll position or video timestamp
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@unique([studentId, lessonId])
+}
+
+model Enrollment {
+  id         String   @id @default(cuid()) @db.VarChar(125)
+  studentId  String   @db.VarChar(125)
+  student    User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  courseId   String   @db.VarChar(125)
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  enrolledAt DateTime @default(now())
+  progress   Int      @default(0)
+
+  @@unique([studentId, courseId])
+}
+
+model Application {
+  id        String @id @default(cuid()) @db.VarChar(125)
+  studentId String @db.VarChar(125)
+  courseId  String @db.VarChar(125)
+
+  status ApplicationStatus @default(CART)
+
+  totalPaid Float @default(0)
+
+  appliedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  declineReason String? @db.VarChar(255)
+
+  student User   @relation(fields: [studentId], references: [id])
+  course  Course @relation(fields: [courseId], references: [id])
+
+  @@unique([studentId, courseId])
+}
+
+model Notification {
+  id         String               @id @default(cuid()) @db.VarChar(125)
+  userId     String               @db.VarChar(125)
+  user       User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type       NotificationType
+  title      String               @db.VarChar(200)
+  message    String               @db.Text
+  link       String?              @db.VarChar(500)
+  isRead     Boolean              @default(false)
+  isArchived Boolean              @default(false)
+  priority   NotificationPriority @default(NORMAL)
+  metadata   Json?
+  createdAt  DateTime             @default(now())
+  expiresAt  DateTime?
+}
+
+model NotificationPreference {
+  id           String   @id @default(cuid()) @db.VarChar(125)
+  userId       String   @unique @db.VarChar(125)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emailEnabled Boolean  @default(true)
+  pushEnabled  Boolean  @default(true)
+  inAppEnabled Boolean  @default(true)
+  typeSettings Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Payment {
+  id        String @id @default(cuid()) @db.VarChar(125)
+  studentId String @db.VarChar(125)
+  courseId  String @db.VarChar(125)
+
+  amount     Float
+  paidAmount Float @default(0)
+
+  method PaymentMethod
+  status PaymentStatus @default(PENDING)
+
+  transactionId String? @db.VarChar(255)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student User   @relation(fields: [studentId], references: [id])
+  course  Course @relation(fields: [courseId], references: [id])
+
+  @@index([studentId, courseId])
+}
+
+// ============ ENUMS ============
+
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+enum Visibility {
+  SHOW
+  HIDE
+}
+
+enum CourseStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum QualificationType {
+  DIPLOMA
+  BACHELORS
+  MASTERS
+  DOCTORATE
+  CERTIFICATE
+  OTHER
+}
+
+enum ApplicationStatus {
+  CART
+  PENDING
+  PARTIAL_PAID
+  PAID
+  APPROVED
+  DECLINED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum PaymentMethod {
+  MPESA
+  PAYPAL
+  CARD
+}
+
+enum LessonType {
+  VIDEO
+  TEXT
+  PDF
+  QUIZ
+  ASSIGNMENT
+}
+
+enum ProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  SHORT_ANSWER
+  ESSAY
+}
+
+enum NotificationType {
+  ASSIGNMENT_GRADED
+  ASSIGNMENT_NEW
+  ASSIGNMENT_REMINDER
+  ASSIGNMENT_SUBMITTED
+  APPLICATION_APPROVED
+  APPLICATION_DECLINED
+  APPLICATION_NEW
+  ANNOUNCEMENT
+  FORUM_REPLY
+  ACHIEVEMENT
+  QUIZ_RESULT
+  CERTIFICATE_READY
+  SUBMISSION_LATE
+  SYSTEM
+}
+
+enum NotificationPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
