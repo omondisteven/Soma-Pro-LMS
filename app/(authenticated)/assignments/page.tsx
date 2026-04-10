@@ -1,9 +1,17 @@
-// app\(authenticated)\assignments\page.tsx
 'use client'
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Calendar, Clock, CheckCircle, AlertCircle, Award, FileText, Upload, Eye } from 'lucide-react'
+
+interface AssignmentSubmission {
+  id: string
+  submittedAt: string
+  grade: number | null
+  feedback: string | null
+  attachments: string[]
+  content?: string  // Add content field as optional
+}
 
 interface Assignment {
   id: string
@@ -15,18 +23,7 @@ interface Assignment {
   courseTitle: string
   lessonId: string
   lessonTitle: string
-  submission?: {
-    id: string
-    submittedAt: string
-    grade: number | null
-    feedback: string | null
-    attachments: string[]
-  }
-}
-
-interface SubmissionData {
-  content: string
-  attachments: string[]
+  submission?: AssignmentSubmission
 }
 
 export default function AssignmentsPage() {
@@ -70,7 +67,6 @@ export default function AssignmentsPage() {
     const token = localStorage.getItem('token')
 
     try {
-      // Upload files first
       const uploadedUrls = await uploadFiles(submissionFiles)
       
       const res = await fetch(`/api/assignments/${assignmentId}/submit`, {
@@ -104,8 +100,6 @@ export default function AssignmentsPage() {
   }
 
   const uploadFiles = async (files: File[]): Promise<string[]> => {
-    // TODO: Implement actual file upload to your server/storage
-    // For now, return mock URLs
     return files.map(f => `/uploads/${Date.now()}-${f.name}`)
   }
 
@@ -166,9 +160,10 @@ export default function AssignmentsPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {assignments.map((assignment) => {
+          {assignments.map((assignment: Assignment) => {
             const status = getStatus(assignment)
             const pastDue = isPastDue(assignment.dueDate)
+            const submission = assignment.submission
             
             return (
               <div key={assignment.id} className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
@@ -208,13 +203,13 @@ export default function AssignmentsPage() {
                       </div>
                       
                       {/* Show grade if graded */}
-                      {status === 'graded' && assignment.submission?.grade !== null && (
+                      {status === 'graded' && submission?.grade !== null && submission?.grade !== undefined && (
                         <div className="mt-3 p-3 bg-blue-50 rounded-lg">
                           <p className="text-sm font-medium text-blue-700">
-                            Grade: {assignment.submission.grade}/{assignment.maxScore}
+                            Grade: {submission.grade}/{assignment.maxScore}
                           </p>
-                          {assignment.submission.feedback && (
-                            <p className="text-sm text-blue-600 mt-1">Feedback: {assignment.submission.feedback}</p>
+                          {submission.feedback && (
+                            <p className="text-sm text-blue-600 mt-1">Feedback: {submission.feedback}</p>
                           )}
                         </div>
                       )}
@@ -374,7 +369,7 @@ export default function AssignmentsPage() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Attachments</label>
                     <div className="space-y-2">
-                      {selectedAssignment.submission.attachments.map((url, idx) => (
+                      {selectedAssignment.submission.attachments.map((url: string, idx: number) => (
                         <a
                           key={idx}
                           href={url}
@@ -390,7 +385,7 @@ export default function AssignmentsPage() {
                   </div>
                 )}
                 
-                {selectedAssignment.submission.grade !== null && (
+                {selectedAssignment.submission.grade !== null && selectedAssignment.submission.grade !== undefined && (
                   <>
                     <div className="p-4 bg-blue-50 rounded-lg">
                       <p className="font-medium text-blue-700">
