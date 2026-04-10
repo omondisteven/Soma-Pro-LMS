@@ -10,9 +10,7 @@ import {
   User, 
   Save,
   Loader2,
-  Monitor,
-  Eye,
-  EyeOff
+  Monitor
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -37,6 +35,13 @@ interface UserProfile {
   name: string
   email: string
   role: string
+}
+
+interface NotificationToggleProps {
+  label: string
+  description: string
+  enabled: boolean
+  onToggle: (value: boolean) => void
 }
 
 export default function SettingsPage() {
@@ -343,31 +348,31 @@ export default function SettingsPage() {
                       label="Assignment Graded"
                       description="When your assignment has been graded"
                       enabled={notifPrefs.typeSettings.ASSIGNMENT_GRADED}
-                      onToggle={(val) => updateTypeSetting('ASSIGNMENT_GRADED', val)}
+                      onToggle={(val: boolean) => updateTypeSetting('ASSIGNMENT_GRADED', val)}
                     />
                     <NotificationToggle
                       label="New Assignment"
                       description="When a new assignment is posted"
                       enabled={notifPrefs.typeSettings.ASSIGNMENT_NEW}
-                      onToggle={(val) => updateTypeSetting('ASSIGNMENT_NEW', val)}
+                      onToggle={(val: boolean) => updateTypeSetting('ASSIGNMENT_NEW', val)}
                     />
                     <NotificationToggle
                       label="Application Status"
                       description="When your course application is approved or declined"
                       enabled={notifPrefs.typeSettings.APPLICATION_APPROVED}
-                      onToggle={(val) => updateTypeSetting('APPLICATION_APPROVED', val)}
+                      onToggle={(val: boolean) => updateTypeSetting('APPLICATION_APPROVED', val)}
                     />
                     <NotificationToggle
                       label="Certificate Available"
                       description="When you earn a new certificate"
                       enabled={notifPrefs.typeSettings.CERTIFICATE_READY}
-                      onToggle={(val) => updateTypeSetting('CERTIFICATE_READY', val)}
+                      onToggle={(val: boolean) => updateTypeSetting('CERTIFICATE_READY', val)}
                     />
                     <NotificationToggle
                       label="Quiz Results"
                       description="When you complete a quiz"
                       enabled={notifPrefs.typeSettings.QUIZ_RESULT}
-                      onToggle={(val) => updateTypeSetting('QUIZ_RESULT', val)}
+                      onToggle={(val: boolean) => updateTypeSetting('QUIZ_RESULT', val)}
                     />
                   </>
                 )}
@@ -378,13 +383,13 @@ export default function SettingsPage() {
                       label="New Applications"
                       description="When a student applies for your course"
                       enabled={notifPrefs.typeSettings.APPLICATION_NEW}
-                      onToggle={(val) => updateTypeSetting('APPLICATION_NEW', val)}
+                      onToggle={(val: boolean) => updateTypeSetting('APPLICATION_NEW', val)}
                     />
                     <NotificationToggle
                       label="Assignment Submissions"
                       description="When a student submits an assignment"
                       enabled={notifPrefs.typeSettings.ASSIGNMENT_SUBMITTED}
-                      onToggle={(val) => updateTypeSetting('ASSIGNMENT_SUBMITTED', val)}
+                      onToggle={(val: boolean) => updateTypeSetting('ASSIGNMENT_SUBMITTED', val)}
                     />
                   </>
                 )}
@@ -393,7 +398,7 @@ export default function SettingsPage() {
                   label="Announcements"
                   description="Course announcements and updates"
                   enabled={notifPrefs.typeSettings.ANNOUNCEMENT}
-                  onToggle={(val) => updateTypeSetting('ANNOUNCEMENT', val)}
+                  onToggle={(val: boolean) => updateTypeSetting('ANNOUNCEMENT', val)}
                 />
               </div>
             </div>
@@ -492,13 +497,6 @@ export default function SettingsPage() {
 }
 
 // Notification Toggle Component
-interface NotificationToggleProps {
-  label: string
-  description: string
-  enabled: boolean
-  onToggle: (value: boolean) => void
-}
-
 function NotificationToggle({ label, description, enabled, onToggle }: NotificationToggleProps) {
   return (
     <label className="flex items-center justify-between py-3 cursor-pointer border-b border-gray-100 dark:border-gray-800 last:border-0">
