@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ application, message: 'Application resubmitted' })
         } else if (existingApplication.status === 'PENDING') {
           return NextResponse.json({ error: 'Application already pending' }, { status: 400 })
-        } else if (existingApplication.status === 'ENROLLED') {
+        } else if (existingApplication.status === 'APPROVED') {
           return NextResponse.json({ error: 'Already enrolled in this course' }, { status: 400 })
         }
       }

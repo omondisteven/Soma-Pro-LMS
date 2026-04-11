@@ -1,8 +1,10 @@
+// src\lib\notifications.ts
 import { prisma } from './prisma'
+import { NotificationType } from '@prisma/client'
 
 interface CreateNotificationParams {
   userId: string
-  type: string
+  type: NotificationType  // Change from string to NotificationType enum
   title: string
   message: string
   link?: string
@@ -121,7 +123,7 @@ export async function notifyAssignmentSubmitted(teacherId: string, studentName: 
 }
 
 // Bulk notification for multiple students
-export async function notifyMultipleStudents(studentIds: string[], type: string, title: string, message: string, link?: string) {
+export async function notifyMultipleStudents(studentIds: string[], type: NotificationType, title: string, message: string, link?: string) {
   const notifications = []
   for (const studentId of studentIds) {
     notifications.push(

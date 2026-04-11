@@ -1,3 +1,4 @@
+// app\api\courses\[id]\route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getUserFromToken } from '@/lib/auth'
@@ -214,6 +215,8 @@ export async function PUT(
 }
 
 // DELETE - Delete course
+// DELETE - Delete course
+// DELETE - Delete course
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -240,75 +243,107 @@ export async function DELETE(
       return NextResponse.json({ error: 'Course not found or access denied' }, { status: 404 })
     }
     
-    // Delete related records (cascade will handle most, but explicit for safety)
+    // First, get all section IDs for this course
+    const sections = await prisma.section.findMany({
+      where: { courseId: courseId },
+      select: { id: true }
+    })
+    const sectionIds = sections.map(s => s.id)
+    
+    // Get all lesson IDs for these sections
+    const lessons = await prisma.lesson.findMany({
+      where: { sectionId: { in: sectionIds } },
+      select: { id: true }
+    })
+    const lessonIds = lessons.map(l => l.id)
+    
+    // Get all quiz IDs for these lessons
+    const quizzes = await prisma.quiz.findMany({
+      where: { lessonId: { in: lessonIds } },
+      select: { id: true }
+    })
+    const quizIds = quizzes.map(q => q.id)
+    
+    // Get all assignment IDs for these lessons
+    const assignments = await prisma.assignment.findMany({
+      where: { lessonId: { in: lessonIds } },
+      select: { id: true }
+    })
+    const assignmentIds = assignments.map(a => a.id)
+    
+    // Delete in correct order using transactions
     await prisma.$transaction([
-      prisma.enrollment.deleteMany({ where: { courseId: courseId } }),
-      prisma.assignmentSubmission.deleteMany({ 
-        where: { 
-          assignment: { 
-            courseId: courseId 
-          } 
-        } 
+      // Delete assignment submissions
+      prisma.assignmentSubmission.deleteMany({
+        where: { assignmentId: { in: assignmentIds } }
       }),
-      prisma.assignment.deleteMany({ where: { courseId: courseId } }),
-      prisma.quizAttempt.deleteMany({ 
-        where: { 
-          quiz: { 
-            lesson: { 
-              section: { 
-                courseId: courseId 
-              } 
-            } 
-          } 
-        } 
+      
+      // Delete assignments
+      prisma.assignment.deleteMany({
+        where: { id: { in: assignmentIds } }
       }),
-      prisma.question.deleteMany({ 
-        where: { 
-          quiz: { 
-            lesson: { 
-              section: { 
-                courseId: courseId 
-              } 
-            } 
-          } 
-        } 
+      
+      // Delete quiz attempts
+      prisma.quizAttempt.deleteMany({
+        where: { quizId: { in: quizIds } }
       }),
-      prisma.quiz.deleteMany({ 
-        where: { 
-          lesson: { 
-            section: { 
-              courseId: courseId 
-            } 
-          } 
-        } 
+      
+      // Delete questions
+      prisma.question.deleteMany({
+        where: { quizId: { in: quizIds } }
       }),
-      prisma.studentProgress.deleteMany({ 
-        where: { 
-          lesson: { 
-            section: { 
-              courseId: courseId 
-            } 
-          } 
-        } 
+      
+      // Delete quizzes
+      prisma.quiz.deleteMany({
+        where: { id: { in: quizIds } }
       }),
-      prisma.lesson.deleteMany({ 
-        where: { 
-          section: { 
-            courseId: courseId 
-          } 
-        } 
+      
+      // Delete student progress
+      prisma.studentProgress.deleteMany({
+        where: { lessonId: { in: lessonIds } }
       }),
-      prisma.section.deleteMany({ where: { courseId: courseId } }),
-      prisma.courseInstructor.deleteMany({ where: { courseId: courseId } }),
-      prisma.application.deleteMany({ where: { courseId: courseId } }),
-      prisma.course.delete({ where: { id: courseId } })
+      
+      // Delete lessons
+      prisma.lesson.deleteMany({
+        where: { id: { in: lessonIds } }
+      }),
+      
+      // Delete sections
+      prisma.section.deleteMany({
+        where: { id: { in: sectionIds } }
+      }),
+      
+      // Delete course instructors
+      prisma.courseInstructor.deleteMany({
+        where: { courseId: courseId }
+      }),
+      
+      // Delete enrollments
+      prisma.enrollment.deleteMany({
+        where: { courseId: courseId }
+      }),
+      
+      // Delete applications
+      prisma.application.deleteMany({
+        where: { courseId: courseId }
+      }),
+      
+      // Delete payments
+      prisma.payment.deleteMany({
+        where: { courseId: courseId }
+      }),
+      
+      // Finally delete the course
+      prisma.course.delete({
+        where: { id: courseId }
+      })
     ])
     
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error deleting course:', error)
     return NextResponse.json(
-      { error: 'Failed to delete course' },
+      { error: 'Failed to delete course: ' + (error as Error).message },
       { status: 500 }
     )
   }

@@ -84,7 +84,7 @@ export default function PublicCoursesPage() {
     const app = applications.get(courseId)
     if (!app) return { text: 'Enroll Now', disabled: false, variant: 'primary' }
     
-    if (app.status === 'ENROLLED') return { text: 'Enrolled', disabled: true, variant: 'success' }
+    if (app.status === 'APPROVED') return { text: 'Enrolled', disabled: true, variant: 'success' }
     if (app.status === 'PAID' || app.status === 'APPROVED') return { text: 'Enrolled', disabled: true, variant: 'success' }
     if (app.status === 'PENDING' || app.status === 'PARTIAL_PAID') {
       return { text: 'Complete Payment', disabled: false, variant: 'warning' }

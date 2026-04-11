@@ -1,3 +1,5 @@
+import { prisma } from "@/lib/prisma"
+
 // app/api/payments/paypal/capture/route.ts
 export async function POST(req: Request) {
   const { orderId, studentId, courseId, amount } = await req.json()

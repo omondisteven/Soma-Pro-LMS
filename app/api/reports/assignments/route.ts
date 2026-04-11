@@ -1,3 +1,4 @@
+// app\api\reports\assignments\route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getUserFromToken } from '@/lib/auth'
@@ -52,6 +53,12 @@ export async function GET(request: NextRequest) {
         // Apply status filter
         if (statusFilter !== 'all' && status !== statusFilter) continue
         
+        // Calculate submitted on time - handle null dueDate
+        let submittedOnTime = false
+        if (submission && assignment.dueDate) {
+          submittedOnTime = new Date(submission.submittedAt) <= new Date(assignment.dueDate)
+        }
+        
         allAssignments.push({
           id: assignment.id,
           title: assignment.title,
@@ -62,13 +69,18 @@ export async function GET(request: NextRequest) {
           score: submission?.grade || null,
           maxScore: assignment.maxScore,
           feedback: submission?.feedback || null,
-          submittedOnTime: submission ? new Date(submission.submittedAt) <= new Date(assignment.dueDate) : false
+          submittedOnTime: submittedOnTime
         })
       }
     }
     
-    // Sort by due date
-    allAssignments.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+    // Sort by due date - handle null dueDate
+    allAssignments.sort((a, b) => {
+      if (!a.dueDate && !b.dueDate) return 0
+      if (!a.dueDate) return 1
+      if (!b.dueDate) return -1
+      return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+    })
     
     return NextResponse.json({ assignments: allAssignments })
   } catch (error) {

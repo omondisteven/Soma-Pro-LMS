@@ -1,3 +1,4 @@
+// app/api/reports/progress/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getUserFromToken } from '@/lib/auth'
@@ -42,7 +43,7 @@ export async function GET(request: NextRequest) {
       for (const section of enrollment.course.sections) {
         for (const lesson of section.lessons) {
           totalLessons++
-          const progress = await prisma.studentProgress.findUnique({
+          const studentProgress = await prisma.studentProgress.findUnique({
             where: {
               studentId_lessonId: {
                 studentId: user.id,
@@ -50,13 +51,26 @@ export async function GET(request: NextRequest) {
               }
             }
           })
-          if (progress?.status === 'COMPLETED') {
+          if (studentProgress?.status === 'COMPLETED') {
             completedLessons++
           }
         }
       }
       
       const progress = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0
+      
+      // Get last activity date from the most recent student progress update
+      const lastProgress = await prisma.studentProgress.findFirst({
+        where: {
+          studentId: user.id,
+          lesson: {
+            section: {
+              courseId: enrollment.course.id
+            }
+          }
+        },
+        orderBy: { updatedAt: 'desc' }
+      })
       
       coursesData.push({
         id: enrollment.course.id,
@@ -66,7 +80,7 @@ export async function GET(request: NextRequest) {
         totalLessons,
         timeSpent: Math.floor(Math.random() * 300) + 60, // Mock data - implement actual tracking
         startedAt: enrollment.enrolledAt,
-        lastActivity: enrollment.updatedAt
+        lastActivity: lastProgress?.updatedAt || enrollment.enrolledAt
       })
     }
     
