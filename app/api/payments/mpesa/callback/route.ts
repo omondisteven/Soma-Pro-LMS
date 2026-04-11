@@ -1,3 +1,4 @@
+// app\api\payments\mpesa\callback\route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
       if (payment) {
         console.log('Payment record found:', payment.id)
         
-        // Update payment - without metadata field if it doesn't exist
+        // Update payment
         await prisma.payment.update({
           where: { id: payment.id },
           data: {
@@ -80,8 +81,8 @@ export async function POST(request: NextRequest) {
             where: { id: application.id },
             data: {
               totalPaid: newTotalPaid,
-              status: isFullyPaid ? 'PAID' : 'PARTIAL_PAID',
-              paymentStatus: isFullyPaid ? 'COMPLETED' : 'PARTIAL'
+              status: isFullyPaid ? 'PAID' : 'PARTIAL_PAID'
+              // Removed paymentStatus - this field doesn't exist in the schema
             }
           })
           console.log(`✅ Application updated: Total Paid=${newTotalPaid}, Status=${isFullyPaid ? 'PAID' : 'PARTIAL_PAID'}`)
