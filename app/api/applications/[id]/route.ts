@@ -55,7 +55,7 @@ export async function PUT(
       await prisma.application.update({
         where: { id: applicationId },
         data: {
-          status: 'ENROLLED',
+          status: 'APPROVED',
           updatedAt: new Date()
         }
       })
