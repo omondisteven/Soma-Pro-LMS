@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
       BusinessShortCode: shortcode,
       Password: password,
       Timestamp: timestamp,
-      TransactionType: 'CustomerPayBillOnline',
+      TransactionType: 'CustomerBuyGoodsOnline',
       Amount: amountToCharge,
       PartyA: formattedPhone,
       PartyB: shortcode,
@@ -191,7 +191,7 @@ export async function POST(request: NextRequest) {
       console.log('CheckoutRequestID:', stkData.CheckoutRequestID)
       console.log('MerchantRequestID:', stkData.MerchantRequestID)
       
-      // Create payment record
+      // Create payment record WITHOUT metadata
       await prisma.payment.create({
         data: {
           studentId: user.id,
@@ -201,11 +201,6 @@ export async function POST(request: NextRequest) {
           method: 'MPESA',
           status: 'PENDING',
           transactionId: stkData.CheckoutRequestID,
-          metadata: {
-            phoneNumber: formattedPhone,
-            checkoutRequestId: stkData.CheckoutRequestID,
-            merchantRequestId: stkData.MerchantRequestID
-          }
         }
       })
       console.log('✅ Payment record created')
