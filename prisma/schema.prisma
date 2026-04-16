@@ -5,7 +5,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -97,7 +97,7 @@ model Lesson {
   title       String     @db.VarChar(200)
   description String?    @db.Text
   type        LessonType
-  content     String?    @db.LongText
+  content     String?    @db.Text  // Changed from @db.LongText
   videoUrl    String?    @db.VarChar(500)
   attachments Json? // Array of file URLs
   duration    Int? // Estimated minutes
@@ -177,7 +177,7 @@ model AssignmentSubmission {
   assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
   studentId    String     @db.VarChar(125)
   student      User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  content      String?    @db.LongText
+  content     String?    @db.Text  // Changed from @db.LongText
   attachments  Json? // Array of file URLs
   submittedAt  DateTime   @default(now())
   grade        Float?
