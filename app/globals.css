@@ -5,18 +5,42 @@
   body {
     background-color: rgb(249, 250, 251);
   }
+  
+  /* Better touch targets on mobile */
+  @media (max-width: 768px) {
+    button, 
+    a, 
+    [role="button"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+  }
+  
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 @layer components {
   .btn-primary {
     background-color: rgb(37, 99, 235);
     color: white;
-    padding: 0.5rem 1.5rem;
+    padding: 0.5rem 1rem;
     border-radius: 0.5rem;
     transition-property: background-color;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 150ms;
+    font-size: 0.875rem;
   }
+  
+  @media (min-width: 768px) {
+    .btn-primary {
+      padding: 0.5rem 1.5rem;
+      font-size: 1rem;
+    }
+  }
+  
   .btn-primary:hover {
     background-color: rgb(29, 78, 216);
   }
@@ -24,12 +48,21 @@
   .btn-secondary {
     background-color: rgb(229, 231, 235);
     color: rgb(31, 41, 55);
-    padding: 0.5rem 1.5rem;
+    padding: 0.5rem 1rem;
     border-radius: 0.5rem;
     transition-property: background-color;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 150ms;
+    font-size: 0.875rem;
   }
+  
+  @media (min-width: 768px) {
+    .btn-secondary {
+      padding: 0.5rem 1.5rem;
+      font-size: 1rem;
+    }
+  }
+  
   .btn-secondary:hover {
     background-color: rgb(209, 213, 219);
   }
@@ -39,6 +72,45 @@
     border-radius: 0.75rem;
     box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     border: 1px solid rgb(229, 231, 235);
-    padding: 1.5rem;
+    padding: 1rem;
+  }
+  
+  @media (min-width: 768px) {
+    .card {
+      padding: 1.5rem;
+    }
+  }
+  
+  /* Responsive tables */
+  .responsive-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  
+  @media (min-width: 768px) {
+    .responsive-table {
+      white-space: normal;
+    }
+  }
+  
+  /* Grid responsive */
+  .course-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  @media (min-width: 640px) {
+    .course-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .course-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
   }
 }

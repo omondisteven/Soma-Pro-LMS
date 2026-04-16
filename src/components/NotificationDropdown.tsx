@@ -181,91 +181,101 @@ export default function NotificationDropdown({ onUnreadCountChange }: Notificati
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative focus:outline-none"
+        className="relative focus:outline-none p-2 rounded-lg hover:bg-gray-100 transition-colors"
+        aria-label="Notifications"
       >
         <Bell size={20} className="text-gray-600 hover:text-gray-900 transition-colors" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">
+          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 rounded-full text-white text-[10px] font-medium flex items-center justify-center px-1">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden">
-          {/* Header */}
-          <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-gray-50">
-            <h3 className="font-semibold text-gray-900">Notifications</h3>
-            {notifications.length > 0 && (
-              <button
-                onClick={markAllAsRead}
-                className="text-xs text-blue-600 hover:text-blue-700"
-              >
-                Mark all as read
-              </button>
-            )}
-          </div>
-
-          {/* Notification List */}
-          <div className="max-h-96 overflow-y-auto">
-            {loading ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-              </div>
-            ) : recentNotifications.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <Bell size={32} className="mx-auto mb-2 text-gray-300" />
-                <p className="text-sm">No notifications yet</p>
-              </div>
-            ) : (
-              recentNotifications.map((notification) => (
-                <div
-                  key={notification.id}
-                  onClick={() => handleNotificationClick(notification)}
-                  className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${
-                    !notification.isRead ? 'bg-blue-50/30' : ''
-                  }`}
+        <>
+          {/* Backdrop for mobile */}
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+            onClick={() => setIsOpen(false)}
+          />
+          
+          {/* Dropdown - responsive width */}
+          <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-96 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden max-w-sm sm:max-w-none">
+            {/* Header */}
+            <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-gray-50">
+              <h3 className="font-semibold text-gray-900 text-sm sm:text-base">Notifications</h3>
+              {notifications.length > 0 && (
+                <button
+                  onClick={markAllAsRead}
+                  className="text-xs text-blue-600 hover:text-blue-700 font-medium"
                 >
-                  <div className="flex gap-3">
-                    <div className="flex-shrink-0 mt-0.5">
-                      {getNotificationIcon(notification.type)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">
-                        {notification.title}
-                      </p>
-                      <p className="text-sm text-gray-600 line-clamp-2">
-                        {notification.message}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        {formatTimeAgo(notification.createdAt)}
-                      </p>
-                    </div>
-                    {!notification.isRead && (
-                      <div className="flex-shrink-0">
-                        <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                      </div>
-                    )}
-                  </div>
+                  Mark all as read
+                </button>
+              )}
+            </div>
+
+            {/* Notification List */}
+            <div className="max-h-96 overflow-y-auto">
+              {loading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
                 </div>
-              ))
+              ) : recentNotifications.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <Bell size={32} className="mx-auto mb-2 text-gray-300" />
+                  <p className="text-sm">No notifications yet</p>
+                </div>
+              ) : (
+                recentNotifications.map((notification) => (
+                  <div
+                    key={notification.id}
+                    onClick={() => handleNotificationClick(notification)}
+                    className={`p-3 sm:p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${
+                      !notification.isRead ? 'bg-blue-50/30' : ''
+                    }`}
+                  >
+                    <div className="flex gap-3">
+                      <div className="flex-shrink-0 mt-0.5">
+                        {getNotificationIcon(notification.type)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900">
+                          {notification.title}
+                        </p>
+                        <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">
+                          {notification.message}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {formatTimeAgo(notification.createdAt)}
+                        </p>
+                      </div>
+                      {!notification.isRead && (
+                        <div className="flex-shrink-0">
+                          <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Footer */}
+            {notifications.length > 0 && (
+              <div className="p-3 border-t border-gray-200 text-center bg-gray-50">
+                <Link
+                  href="/notifications"
+                  onClick={() => setIsOpen(false)}
+                  className="text-xs sm:text-sm text-blue-600 hover:text-blue-700 flex items-center justify-center gap-1"
+                >
+                  View all notifications
+                  <ExternalLink size={14} />
+                </Link>
+              </div>
             )}
           </div>
-
-          {/* Footer */}
-          {notifications.length > 0 && (
-            <div className="p-3 border-t border-gray-200 text-center bg-gray-50">
-              <Link
-                href="/notifications"
-                onClick={() => setIsOpen(false)}
-                className="text-sm text-blue-600 hover:text-blue-700 flex items-center justify-center gap-1"
-              >
-                View all notifications
-                <ExternalLink size={14} />
-              </Link>
-            </div>
-          )}
-        </div>
+        </>
       )}
     </div>
   )

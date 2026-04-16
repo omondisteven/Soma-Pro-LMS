@@ -14,6 +14,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const pathname = usePathname()
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -28,6 +29,17 @@ export default function MainLayout({ children }: MainLayoutProps) {
     }
     setLoading(false)
   }, [router])
+
+  // Close mobile menu on window resize (when switching to desktop)
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setIsMobileMenuOpen(false)
+      }
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   // Don't show layout on auth pages
   const isAuthPage = pathname === '/login' || pathname === '/register'
@@ -47,40 +59,48 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
   // Get page title based on current path
   const getPageTitle = () => {
-    if (pathname === '/dashboard') return 'Dashboard'
-    if (pathname === '/courses') return 'My Courses'
-    if (pathname === '/assignments') return 'Assignments'
-    if (pathname === '/enroll-students') return 'Enroll Students' 
-    if (pathname === '/teacher/grading') return 'Mark Assignments' 
-    if (pathname === '/grades') return 'Grades'
-    if (pathname === '/students') return 'Students'
-    if (pathname === '/profile') return 'Profile'
-    if (pathname === '/reports') return 'Reports & Statistics'
-    if (pathname === '/reports/assignments') return 'Assignment Report'
-    if (pathname === '/reports/grades') return 'Grade Report'
-    if (pathname === '/reports/progress') return 'Progress Report'
-    if (pathname === '/settings') return 'Settings'
-    if (pathname?.startsWith('/courses/')) return 'Browse Courses'
+    const path = pathname || ''
+    if (path === '/dashboard') return 'Dashboard'
+    if (path === '/courses') return 'My Courses'
+    if (path === '/courses/public') return 'Browse Courses'
+    if (path === '/assignments') return 'Assignments'
+    if (path === '/grades') return 'Grades'
+    if (path === '/students') return 'Students'
+    if (path === '/enroll-students') return 'Enroll Students'
+    if (path === '/teacher/grading') return 'Grading'
+    if (path === '/profile') return 'Profile'
+    if (path === '/settings') return 'Settings'
+    if (path?.startsWith('/courses/')) return 'Course Details'
+    if (path?.startsWith('/teacher/courses/')) return 'Manage Course'
+    if (path?.startsWith('/teacher/students/')) return 'Student Details'
+    if (path?.startsWith('/reports')) return 'Reports'
     return 'Cps-LMS'
   }
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Sidebar - Always visible */}
-      <Sidebar userRole={user.role} />
+      {/* Sidebar */}
+      <Sidebar 
+        userRole={user.role} 
+        isMobileOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+      />
       
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Topbar - Always visible, dynamic based on current page */}
+      <div className="flex-1 flex flex-col overflow-hidden lg:ml-56">
         <Topbar 
           userName={user.name} 
           userAvatar={user.avatar}
           pageTitle={getPageTitle()}
+          onMenuClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          isMobileMenuOpen={isMobileMenuOpen}
         />
         
-        {/* Page Content - Scrollable area */}
-        <main className="flex-1 overflow-y-auto p-8">
-          {children}
+        {/* Page Content - Scrollable area with responsive padding */}
+        <main className="flex-1 overflow-y-auto p-3 md:p-6 lg:p-8">
+          <div className="max-w-7xl mx-auto">
+            {children}
+          </div>
         </main>
       </div>
     </div>
