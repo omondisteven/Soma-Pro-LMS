@@ -34,13 +34,22 @@ export default function Sidebar({ userRole, isMobileOpen, onClose }: SidebarProp
   const router = useRouter()
   const [isCoursesOpen, setIsCoursesOpen] = useState(false)
   const [isReportsOpen, setIsReportsOpen] = useState(true)
+  const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
-    // Close sidebar on route change on mobile
-    if (window.innerWidth < 1024) {
-      onClose()
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024)
     }
-  }, [pathname, onClose])
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  useEffect(() => {
+    if (isMobile && isMobileOpen) {
+      // Don't auto-close on route change - let the parent handle it
+    }
+  }, [pathname, isMobile, isMobileOpen])
 
   const handleLogout = async () => {
     try {
@@ -66,23 +75,24 @@ export default function Sidebar({ userRole, isMobileOpen, onClose }: SidebarProp
     }
   `
 
-  const sidebarContent = (
-    <>
+  return (
+    <div className="h-full w-56 bg-gradient-to-b from-gray-900 to-gray-800 text-white flex flex-col shadow-xl">
       <div className="p-4 border-b border-gray-700">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-              Cps-LMS
+              SomaPRO
             </h1>
             <p className="text-xs text-gray-400 mt-0.5">Learning Management System</p>
           </div>
-          {/* Close button for mobile */}
-          <button 
-            onClick={onClose}
-            className="lg:hidden p-2 hover:bg-gray-700 rounded-lg text-gray-400"
-          >
-            <X size={20} />
-          </button>
+          {isMobile && (
+            <button 
+              onClick={onClose}
+              className="lg:hidden p-2 hover:bg-gray-700 rounded-lg text-gray-400"
+            >
+              <X size={20} />
+            </button>
+          )}
         </div>
       </div>
       
@@ -281,34 +291,6 @@ export default function Sidebar({ userRole, isMobileOpen, onClose }: SidebarProp
           <span className="font-normal">Logout</span>
         </button>
       </div>
-    </>
-  )
-
-  return (
-    <>
-      {/* Desktop Sidebar - always visible on lg screens */}
-      <aside className="hidden lg:block w-56 bg-gradient-to-b from-gray-900 to-gray-800 text-white flex flex-col shadow-xl z-20 fixed h-screen">
-        {sidebarContent}
-      </aside>
-
-      {/* Mobile Sidebar - overlay */}
-      <div 
-        className={`fixed inset-0 z-50 transition-transform duration-300 ease-in-out ${
-          isMobileOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:hidden`}
-      >
-        <div className="relative w-64 h-full bg-gradient-to-b from-gray-900 to-gray-800 text-white flex flex-col shadow-xl">
-          {sidebarContent}
-        </div>
-      </div>
-
-      {/* Mobile Overlay */}
-      {isMobileOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-          onClick={onClose}
-        />
-      )}
-    </>
+    </div>
   )
 }

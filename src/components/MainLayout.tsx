@@ -15,6 +15,28 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Detect mobile device reliably
+  useEffect(() => {
+    const checkMobile = () => {
+      const width = window.innerWidth
+      const isMobileDevice = width < 1024
+      console.log('Window width:', width, 'Is mobile:', isMobileDevice)
+      setIsMobile(isMobileDevice)
+      if (isMobileDevice) {
+        setIsMobileMenuOpen(false)
+      }
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    
+    // Also log user agent for debugging
+    console.log('User Agent:', navigator.userAgent)
+    
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -30,16 +52,12 @@ export default function MainLayout({ children }: MainLayoutProps) {
     setLoading(false)
   }, [router])
 
-  // Close mobile menu on window resize (when switching to desktop)
+  // Close mobile menu on route change
   useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 1024) {
-        setIsMobileMenuOpen(false)
-      }
+    if (isMobile) {
+      setIsMobileMenuOpen(false)
     }
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
+  }, [pathname, isMobile])
 
   // Don't show layout on auth pages
   const isAuthPage = pathname === '/login' || pathname === '/register'
@@ -74,20 +92,32 @@ export default function MainLayout({ children }: MainLayoutProps) {
     if (path?.startsWith('/teacher/courses/')) return 'Manage Course'
     if (path?.startsWith('/teacher/students/')) return 'Student Details'
     if (path?.startsWith('/reports')) return 'Reports'
-    return 'Cps-LMS'
+    return 'SomaPRO'
   }
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <Sidebar 
-        userRole={user.role} 
-        isMobileOpen={isMobileMenuOpen}
-        onClose={() => setIsMobileMenuOpen(false)}
-      />
+      {/* Sidebar - hidden by default on mobile, shown when isMobileMenuOpen is true */}
+      <div className={`fixed inset-0 z-50 transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:block lg:w-56 ${
+        isMobile ? (isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full') : 'translate-x-0'
+      }`}>
+        <Sidebar 
+          userRole={user.role} 
+          isMobileOpen={isMobileMenuOpen}
+          onClose={() => setIsMobileMenuOpen(false)}
+        />
+      </div>
+
+      {/* Overlay for mobile */}
+      {isMobile && isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
       
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden lg:ml-56">
+      <div className="flex-1 flex flex-col overflow-hidden lg:ml-0">
         <Topbar 
           userName={user.name} 
           userAvatar={user.avatar}
@@ -96,7 +126,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
           isMobileMenuOpen={isMobileMenuOpen}
         />
         
-        {/* Page Content - Scrollable area with responsive padding */}
+        {/* Page Content */}
         <main className="flex-1 overflow-y-auto p-3 md:p-6 lg:p-8">
           <div className="max-w-7xl mx-auto">
             {children}
