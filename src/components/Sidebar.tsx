@@ -52,7 +52,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
     <aside className="w-56 bg-gradient-to-b from-gray-900 to-gray-800 text-white flex flex-col shadow-xl z-20">
       <div className="p-4 border-b border-gray-700">
         <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-          SomaPRO
+          Cps-LMS
         </h1>
         <p className="text-xs text-gray-400 mt-0.5">Learning Management System</p>
       </div>

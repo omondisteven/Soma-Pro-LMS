@@ -1,8 +1,8 @@
-# SomaPro LMS - Learning Management System
+# Cps-LMS LMS - Learning Management System
 
-![SomaPro LMS Banner](https://via.placeholder.com/1200x400/1e293b/ffffff?text=SomaPro+LMS)
+![Cps-LMS LMS Banner](https://via.placeholder.com/1200x400/1e293b/ffffff?text=Cps-LMS+LMS)
 
-A comprehensive, modern Learning Management System built with Next.js 14, TypeScript, and MySQL. SomaPro LMS provides a complete solution for online education with support for courses, assignments, quizzes, grading, payment integration, and real-time notifications.
+A comprehensive, modern Learning Management System built with Next.js 14, TypeScript, and MySQL. Cps-LMS LMS provides a complete solution for online education with support for courses, assignments, quizzes, grading, payment integration, and real-time notifications.
 
 ---
 
@@ -76,7 +76,7 @@ npm install
 ```
 
 ```sql
-CREATE DATABASE somapro_db;
+CREATE DATABASE Cps-LMS_db;
 ```
 
 ```bash

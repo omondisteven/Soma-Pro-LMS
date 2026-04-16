@@ -78,8 +78,8 @@ function generateInvoicePDF(doc: PDFKit.PDFDocument, payment: any) {
   // Company Info
   doc.fontSize(10)
     .font('Helvetica')
-    .text('SomaPRO Learning Platform', { align: 'center' })
-    .text('contact@somapro.com', { align: 'center' })
+    .text('Cps-LMS Learning Platform', { align: 'center' })
+    .text('contact@Cps-LMS.com', { align: 'center' })
     .text('+254 700 000 000', { align: 'center' })
     .moveDown()
   

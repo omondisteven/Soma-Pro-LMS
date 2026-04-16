@@ -61,7 +61,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
     if (pathname === '/reports/progress') return 'Progress Report'
     if (pathname === '/settings') return 'Settings'
     if (pathname?.startsWith('/courses/')) return 'Browse Courses'
-    return 'SomaPRO'
+    return 'Cps-LMS'
   }
 
   return (

@@ -6,7 +6,7 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'SomaPRO - Learning Management System',
+  title: 'Cps-LMS - Learning Management System',
   description: 'Modern LMS for online education',
 }
 
