@@ -78,9 +78,11 @@ export default function Sidebar({ userRole, isMobileOpen, onClose }: SidebarProp
 
   return (
     <div
+      style={{ willChange: 'transform' }}
       className={`
-        fixed top-0 left-0 z-50 h-full w-56
+        fixed top-0 left-0 h-full w-64 z-50
         bg-gradient-to-b from-gray-900 to-gray-800 text-white flex flex-col shadow-xl
+
         transform transition-transform duration-300 ease-in-out
 
         ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}
