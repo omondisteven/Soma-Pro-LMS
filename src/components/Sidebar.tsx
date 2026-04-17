@@ -1,3 +1,4 @@
+// src/components/Sidebar.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -76,7 +77,22 @@ export default function Sidebar({ userRole, isMobileOpen, onClose }: SidebarProp
   `
 
   return (
-    <div className="h-full w-56 bg-gradient-to-b from-gray-900 to-gray-800 text-white flex flex-col shadow-xl">
+    <div
+      className={`
+        fixed top-0 left-0 z-50 h-full w-56
+        bg-gradient-to-b from-gray-900 to-gray-800 text-white flex flex-col shadow-xl
+        transform transition-transform duration-300 ease-in-out
+
+        ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}
+        lg:translate-x-0 lg:static
+      `}>
+
+        {isMobileOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={onClose}
+          />
+        )}
       <div className="p-4 border-b border-gray-700">
         <div className="flex items-center justify-between">
           <div>

@@ -1,3 +1,4 @@
+// src/components/MainLayout.tsx
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -12,32 +13,12 @@ interface MainLayoutProps {
 export default function MainLayout({ children }: MainLayoutProps) {
   const router = useRouter()
   const pathname = usePathname()
+
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
 
-  // Detect mobile device reliably
-  useEffect(() => {
-    const checkMobile = () => {
-      const width = window.innerWidth
-      const isMobileDevice = width < 1024
-      console.log('Window width:', width, 'Is mobile:', isMobileDevice)
-      setIsMobile(isMobileDevice)
-      if (isMobileDevice) {
-        setIsMobileMenuOpen(false)
-      }
-    }
-    
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    
-    // Also log user agent for debugging
-    console.log('User Agent:', navigator.userAgent)
-    
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
-
+  // Auth check
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (!token) {
@@ -49,17 +30,16 @@ export default function MainLayout({ children }: MainLayoutProps) {
     if (userData) {
       setUser(JSON.parse(userData))
     }
+
     setLoading(false)
   }, [router])
 
-  // Close mobile menu on route change
+  // Close sidebar on route change (mobile UX)
   useEffect(() => {
-    if (isMobile) {
-      setIsMobileMenuOpen(false)
-    }
-  }, [pathname, isMobile])
+    setIsMobileMenuOpen(false)
+  }, [pathname])
 
-  // Don't show layout on auth pages
+  // Skip layout for auth pages
   const isAuthPage = pathname === '/login' || pathname === '/register'
   if (isAuthPage) {
     return <>{children}</>
@@ -75,7 +55,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
   if (!user) return null
 
-  // Get page title based on current path
+  // Dynamic page titles
   const getPageTitle = () => {
     const path = pathname || ''
     if (path === '/dashboard') return 'Dashboard'
@@ -97,27 +77,25 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Sidebar - hidden by default on mobile, shown when isMobileMenuOpen is true */}
-      <div className={`fixed inset-0 z-50 transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:block lg:w-56 ${
-        isMobile ? (isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full') : 'translate-x-0'
-      }`}>
-        <Sidebar 
-          userRole={user.role} 
-          isMobileOpen={isMobileMenuOpen}
-          onClose={() => setIsMobileMenuOpen(false)}
-        />
-      </div>
+      
+      {/* Sidebar */}
+      <Sidebar 
+        userRole={user.role} 
+        isMobileOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+      />
 
-      {/* Overlay for mobile */}
-      {isMobile && isMobileMenuOpen && (
+      {/* Overlay (mobile only) */}
+      {isMobileMenuOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
-      
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden lg:ml-0">
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        
         <Topbar 
           userName={user.name} 
           userAvatar={user.avatar}
@@ -125,8 +103,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
           onMenuClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           isMobileMenuOpen={isMobileMenuOpen}
         />
-        
-        {/* Page Content */}
+
         <main className="flex-1 overflow-y-auto p-3 md:p-6 lg:p-8">
           <div className="max-w-7xl mx-auto">
             {children}
