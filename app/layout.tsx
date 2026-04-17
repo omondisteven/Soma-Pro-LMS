@@ -10,13 +10,15 @@ export const metadata: Metadata = {
   description: 'Modern LMS for online education',
 }
 
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: true,
-  viewportFit: 'cover',
-}
+// export const viewport: Viewport = {
+//   width: 'device-width',
+//   initialScale: 1,
+//   maximumScale: 1,
+//   userScalable: true,
+//   viewportFit: 'cover',
+// }
+
+// app/layout.tsx
 
 export default function RootLayout({
   children,
@@ -25,7 +27,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <head>
+        {/* ✅ FORCE mobile viewport */}
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
+      <body>
         {children}
       </body>
     </html>
