@@ -2,28 +2,22 @@
 'use client'
 
 import { Bell, Search, User, ChevronDown, Menu, X } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import NotificationDropdown from './NotificationDropdown'
+import { useSidebar } from '@/context/SidebarContext'
 
 interface TopbarProps {
   userName: string
   userAvatar?: string
   pageTitle?: string
-  onMenuClick?: () => void
-  isMobileMenuOpen?: boolean
 }
 
-export default function Topbar({ 
-  userName, 
-  userAvatar, 
-  pageTitle, 
-  onMenuClick, 
-  isMobileMenuOpen 
-}: TopbarProps) {
+export default function Topbar({ userName, userAvatar, pageTitle }: TopbarProps) {
   const [showProfileMenu, setShowProfileMenu] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const router = useRouter()
+  const { toggleSidebar, isMobile } = useSidebar()
 
   const handleLogout = async () => {
     try {
@@ -41,13 +35,15 @@ export default function Topbar({
     <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-3 md:px-8 sticky top-0 z-30">
       {/* Left section */}
       <div className="flex items-center gap-2 md:gap-4">
-        {/* Mobile menu button - always visible on mobile */}
-        <button 
-          className="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          onClick={onMenuClick}
-        >
-          {isMobileMenuOpen ? <X size={22} className="text-gray-600" /> : <Menu size={22} className="text-gray-600" />}
-        </button>
+        {/* Mobile menu button - only visible on mobile */}
+        {isMobile && (
+          <button 
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            onClick={toggleSidebar}
+          >
+            <Menu size={22} className="text-gray-600" />
+          </button>
+        )}
         
         {/* Page Title - hidden on mobile when search is open */}
         <div className={`${isSearchOpen ? 'hidden sm:block' : 'block'}`}>

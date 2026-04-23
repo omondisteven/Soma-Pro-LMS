@@ -1,6 +1,6 @@
-// app\layout.tsx
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
+import { SidebarProvider } from '@/context/SidebarContext'  // Note: @/src/context
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -10,15 +10,13 @@ export const metadata: Metadata = {
   description: 'Modern LMS for online education',
 }
 
-// export const viewport: Viewport = {
-//   width: 'device-width',
-//   initialScale: 1,
-//   maximumScale: 1,
-//   userScalable: true,
-//   viewportFit: 'cover',
-// }
-
-// app/layout.tsx
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: true,
+  viewportFit: 'cover',
+}
 
 export default function RootLayout({
   children,
@@ -27,12 +25,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
-        {/* ✅ FORCE mobile viewport */}
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-      </head>
-      <body>
-        {children}
+      <body className={inter.className}>
+        <SidebarProvider>
+          {children}
+        </SidebarProvider>
       </body>
     </html>
   )
