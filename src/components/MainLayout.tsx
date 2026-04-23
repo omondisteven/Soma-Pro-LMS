@@ -13,24 +13,9 @@ interface MainLayoutProps {
 export default function MainLayout({ children }: MainLayoutProps) {
   const router = useRouter()
   const pathname = usePathname()
-
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
-  useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
-
-    return () => {
-      document.body.style.overflow = ''
-    }
-  }, [isMobileMenuOpen])
-
-  // Auth check
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (!token) {
@@ -42,16 +27,10 @@ export default function MainLayout({ children }: MainLayoutProps) {
     if (userData) {
       setUser(JSON.parse(userData))
     }
-
     setLoading(false)
   }, [router])
 
-  // Close sidebar on route change (mobile UX)
-  useEffect(() => {
-    setIsMobileMenuOpen(false)
-  }, [pathname])
-
-  // Skip layout for auth pages
+  // Don't show layout on auth pages
   const isAuthPage = pathname === '/login' || pathname === '/register'
   if (isAuthPage) {
     return <>{children}</>
@@ -67,7 +46,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
   if (!user) return null
 
-  // Dynamic page titles
+  // Get page title based on current path
   const getPageTitle = () => {
     const path = pathname || ''
     if (path === '/dashboard') return 'Dashboard'
@@ -89,33 +68,18 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
   return (
     <div className="flex h-screen bg-gray-50">
+      {/* Sidebar - now uses Context internally, no props needed */}
+      <Sidebar userRole={user.role} />
       
-      {/* Sidebar */}
-      <Sidebar 
-        userRole={user.role} 
-        isMobileOpen={isMobileMenuOpen}
-        onClose={() => setIsMobileMenuOpen(false)}
-      />
-
-      {/* Overlay (mobile only) */}
-      {isMobileMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col overflow-hidden lg:ml-56">
         <Topbar 
           userName={user.name} 
           userAvatar={user.avatar}
           pageTitle={getPageTitle()}
-          onMenuClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          isMobileMenuOpen={isMobileMenuOpen}
         />
-
+        
+        {/* Page Content */}
         <main className="flex-1 overflow-y-auto p-3 md:p-6 lg:p-8">
           <div className="max-w-7xl mx-auto">
             {children}
