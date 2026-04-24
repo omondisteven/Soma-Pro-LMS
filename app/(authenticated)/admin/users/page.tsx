@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Plus, Edit, Trash2, UserPlus, Shield, Users, GraduationCap } from 'lucide-react'
+import { Plus, Edit, Trash2, UserPlus, Shield, Users, GraduationCap, X, Save } from 'lucide-react'
 
 interface User {
   id: string
@@ -18,6 +18,7 @@ export default function UserManagementPage() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [userRole, setUserRole] = useState<string>('')
   const [formData, setFormData] = useState({
@@ -87,6 +88,65 @@ export default function UserManagementPage() {
     } catch (error) {
       console.error('Error creating user:', error)
       alert('Failed to create user')
+    }
+  }
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingUser) return
+    
+    const token = localStorage.getItem('token')
+    
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          id: editingUser.id,
+          name: editingUser.name,
+          role: editingUser.role,
+          highSchoolCompleted: editingUser.highSchoolCompleted,
+          qualification: editingUser.qualification,
+          qualificationDiscipline: editingUser.qualificationDiscipline,
+        })
+      })
+      
+      if (res.ok) {
+        setShowEditModal(false)
+        setEditingUser(null)
+        fetchUsers()
+      } else {
+        const data = await res.json()
+        alert(data.error || 'Failed to update user')
+      }
+    } catch (error) {
+      console.error('Error updating user:', error)
+      alert('Failed to update user')
+    }
+  }
+
+  const handleDelete = async (userId: string) => {
+    if (!confirm('Are you sure you want to delete this user?')) return
+    
+    const token = localStorage.getItem('token')
+    try {
+      const res = await fetch(`/api/admin/users?id=${userId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      
+      if (res.ok) {
+        fetchUsers()
+      } else {
+        const data = await res.json()
+        alert(data.error || 'Failed to delete user')
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error)
+      alert('Failed to delete user')
     }
   }
 
@@ -160,10 +220,19 @@ export default function UserManagementPage() {
                     {new Date(user.createdAt).toLocaleDateString()}
                   </td>
                   <td className="py-3 px-6">
-                    <button className="text-blue-600 hover:text-blue-700 mr-3">
+                    <button
+                      onClick={() => {
+                        setEditingUser(user)
+                        setShowEditModal(true)
+                      }}
+                      className="text-blue-600 hover:text-blue-700 mr-3"
+                    >
                       <Edit size={18} />
                     </button>
-                    <button className="text-red-600 hover:text-red-700">
+                    <button
+                      onClick={() => handleDelete(user.id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
                       <Trash2 size={18} />
                     </button>
                   </td>
@@ -180,7 +249,12 @@ export default function UserManagementPage() {
           <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setShowModal(false)} />
           <div className="relative min-h-screen flex items-center justify-center p-4">
             <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-              <h2 className="text-xl font-bold mb-4">Add New User</h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">Add New User</h2>
+                <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
+                  <X size={24} />
+                </button>
+              </div>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
@@ -284,6 +358,106 @@ export default function UserManagementPage() {
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                   >
                     Create User
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit User Modal */}
+      {showEditModal && editingUser && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setShowEditModal(false)} />
+          <div className="relative min-h-screen flex items-center justify-center p-4">
+            <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">Edit User</h2>
+                <button onClick={() => setShowEditModal(false)} className="text-gray-400 hover:text-gray-600">
+                  <X size={24} />
+                </button>
+              </div>
+              <form onSubmit={handleUpdate} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                  <input
+                    type="text"
+                    value={editingUser.name}
+                    onChange={(e) => setEditingUser({ ...editingUser, name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                  <select
+                    value={editingUser.role}
+                    onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="STUDENT">Student</option>
+                    <option value="TEACHER">Teacher</option>
+                    <option value="MANAGER" disabled={userRole !== 'ADMIN'}>Manager</option>
+                    <option value="ADMIN" disabled={userRole !== 'ADMIN'}>Admin</option>
+                  </select>
+                </div>
+                
+                {editingUser.role === 'STUDENT' && (
+                  <>
+                    <div>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={editingUser.highSchoolCompleted || false}
+                          onChange={(e) => setEditingUser({ ...editingUser, highSchoolCompleted: e.target.checked })}
+                          className="w-4 h-4 text-blue-600 rounded"
+                        />
+                        <span className="text-sm text-gray-700">High School Completed</span>
+                      </label>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Qualification</label>
+                      <select
+                        value={editingUser.qualification || ''}
+                        onChange={(e) => setEditingUser({ ...editingUser, qualification: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select qualification</option>
+                        <option value="DIPLOMA">Diploma</option>
+                        <option value="BACHELORS">Bachelor's Degree</option>
+                        <option value="MASTERS">Master's Degree</option>
+                        <option value="DOCTORATE">Doctorate</option>
+                        <option value="CERTIFICATE">Certificate</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Discipline</label>
+                      <input
+                        type="text"
+                        value={editingUser.qualificationDiscipline || ''}
+                        onChange={(e) => setEditingUser({ ...editingUser, qualificationDiscipline: e.target.value })}
+                        placeholder="e.g., Computer Science"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </>
+                )}
+                
+                <div className="flex justify-end gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowEditModal(false)}
+                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  >
+                    Save Changes
                   </button>
                 </div>
               </form>

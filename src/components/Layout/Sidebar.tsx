@@ -100,15 +100,33 @@ export default function Sidebar({ userRole }: SidebarProps) {
         </Link>
 
         {/* User Management - ADMIN and MANAGER only */}
-        {(isAdmin || isManager) && (
-          <Link
-            href="/admin/users"
-            onClick={handleLinkClick}
-            className={menuItemClass(pathname === '/admin/users')}
-          >
-            <Shield size={18} />
-            <span className="font-normal">User Management</span>
-          </Link>
+        {isAdmin && (
+          <>
+            <Link
+              href="/admin/students"
+              onClick={handleLinkClick}
+              className={menuItemClass(pathname === '/admin/students')}
+            >
+              <Users size={18} />
+              <span className="font-normal">Students</span>
+            </Link>
+            <Link
+              href="/admin/teachers"
+              onClick={handleLinkClick}
+              className={menuItemClass(pathname === '/admin/teachers')}
+            >
+              <Users size={18} />
+              <span className="font-normal">Teachers</span>
+            </Link>
+            <Link
+              href="/admin/assign-course"
+              onClick={handleLinkClick}
+              className={menuItemClass(pathname === '/admin/assign-course')}
+            >
+              <BookOpen size={18} />
+              <span className="font-normal">Assign Course</span>
+            </Link>
+          </>
         )}
 
         {/* Courses Section - Everyone */}
