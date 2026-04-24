@@ -2,15 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getUserFromToken } from '@/lib/auth'
 import { hashPassword } from '@/lib/auth'
-import { Role } from '@prisma/client'  // Import the Role enum from Prisma
 
 // GET - List all users (Admin/Manager only)
 export async function GET(request: NextRequest) {
   const token = request.headers.get('authorization')?.replace('Bearer ', '')
   const user = await getUserFromToken(token)
   
-  // Check if user exists and has appropriate role
-  if (!user || (user.role !== Role.ADMIN && user.role !== Role.MANAGER)) {
+  // Check if user exists and has appropriate role (using string literals)
+  if (!user || (user.role !== 'ADMIN' && user.role !== 'MANAGER')) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   
@@ -44,7 +43,7 @@ export async function POST(request: NextRequest) {
   const token = request.headers.get('authorization')?.replace('Bearer ', '')
   const currentUser = await getUserFromToken(token)
   
-  if (!currentUser || (currentUser.role !== Role.ADMIN && currentUser.role !== Role.MANAGER)) {
+  if (!currentUser || (currentUser.role !== 'ADMIN' && currentUser.role !== 'MANAGER')) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   
@@ -52,11 +51,11 @@ export async function POST(request: NextRequest) {
     const { email, password, name, role, highSchoolCompleted, qualification, qualificationDiscipline } = await request.json()
     
     // Validate role creation permissions
-    if (role === Role.ADMIN && currentUser.role !== Role.ADMIN) {
+    if (role === 'ADMIN' && currentUser.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Only admins can create admin users' }, { status: 403 })
     }
     
-    if (role === Role.MANAGER && currentUser.role !== Role.ADMIN) {
+    if (role === 'MANAGER' && currentUser.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Only admins can create manager users' }, { status: 403 })
     }
     
@@ -78,7 +77,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Add student-specific fields
-    if (role === Role.STUDENT) {
+    if (role === 'STUDENT') {
       userData.highSchoolCompleted = highSchoolCompleted || false
       userData.qualification = qualification || null
       userData.qualificationDiscipline = qualificationDiscipline || null
