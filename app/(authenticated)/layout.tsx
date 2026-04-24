@@ -78,13 +78,13 @@ export default function AuthenticatedLayout({
         <MobileHeader />
         
         {/* Desktop Topbar - hidden on mobile */}
-        <div className="hidden lg:block">
+        {/* <div className="hidden lg:block">
           <Topbar 
             userName={user.name} 
             userAvatar={user.avatar}
             // pageTitle={getPageTitle()}
           />
-        </div>
+        </div> */}
         
         {/* Page Content */}
         <main className={`flex-1 overflow-y-auto ${isMobile ? 'mt-14' : ''}`}>
