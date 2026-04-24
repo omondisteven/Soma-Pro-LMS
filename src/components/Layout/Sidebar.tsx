@@ -229,7 +229,6 @@ export default function Sidebar({ userRole }: SidebarProps) {
                   </>
                 )}
 
-                // Add to menuItems for ADMIN and MANAGER
                 { (userRole === 'ADMIN' || userRole === 'MANAGER') && (
                   <Link
                     href="/admin/users"
