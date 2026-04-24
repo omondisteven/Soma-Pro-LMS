@@ -8,8 +8,9 @@ export async function GET(request: NextRequest) {
   const token = request.headers.get('authorization')?.replace('Bearer ', '')
   const user = await getUserFromToken(token)
   
-  // Check if user exists and has appropriate role (using string literals)
-  if (!user || (user.role !== 'ADMIN' && user.role !== 'MANAGER')) {
+  // Check if user exists and has appropriate role - use type assertion
+  const userRole = user?.role as string
+  if (!user || (userRole !== 'ADMIN' && userRole !== 'MANAGER')) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   
@@ -43,7 +44,8 @@ export async function POST(request: NextRequest) {
   const token = request.headers.get('authorization')?.replace('Bearer ', '')
   const currentUser = await getUserFromToken(token)
   
-  if (!currentUser || (currentUser.role !== 'ADMIN' && currentUser.role !== 'MANAGER')) {
+  const currentUserRole = currentUser?.role as string
+  if (!currentUser || (currentUserRole !== 'ADMIN' && currentUserRole !== 'MANAGER')) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   
@@ -51,11 +53,11 @@ export async function POST(request: NextRequest) {
     const { email, password, name, role, highSchoolCompleted, qualification, qualificationDiscipline } = await request.json()
     
     // Validate role creation permissions
-    if (role === 'ADMIN' && currentUser.role !== 'ADMIN') {
+    if (role === 'ADMIN' && currentUserRole !== 'ADMIN') {
       return NextResponse.json({ error: 'Only admins can create admin users' }, { status: 403 })
     }
     
-    if (role === 'MANAGER' && currentUser.role !== 'ADMIN') {
+    if (role === 'MANAGER' && currentUserRole !== 'ADMIN') {
       return NextResponse.json({ error: 'Only admins can create manager users' }, { status: 403 })
     }
     
