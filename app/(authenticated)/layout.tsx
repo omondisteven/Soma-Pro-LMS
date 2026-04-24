@@ -68,14 +68,16 @@ export default function AuthenticatedLayout({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
-      {/* Sidebar */}
+    <div className="min-h-screen bg-gray-50">
+      {/* Sidebar - fixed on desktop */}
       <Sidebar userRole={user.role} />
       
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Main Content Area - with margin on desktop to account for sidebar */}
+      <div className="lg:ml-56 flex flex-col min-h-screen">
         {/* Mobile Header - visible on mobile only */}
-        <MobileHeader />
+        <div className="lg:hidden">
+          <MobileHeader />
+        </div>
         
         {/* Desktop Topbar - hidden on mobile */}
         <div className="hidden lg:block">
@@ -86,8 +88,8 @@ export default function AuthenticatedLayout({
           />
         </div>
         
-        {/* Main Content */}
-        <main className={`flex-1 overflow-y-auto ${isMobile ? 'pt-14' : ''}`}>
+        {/* Page Content */}
+        <main className={`flex-1 ${isMobile ? 'mt-14' : ''}`}>
           <div className="p-4 md:p-6 lg:p-8">
             {children}
           </div>

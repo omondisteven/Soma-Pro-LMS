@@ -294,8 +294,8 @@ export default function Sidebar({ userRole }: SidebarProps) {
 
   // Desktop: always visible sidebar
   return (
-    <aside className="hidden lg:block w-56 bg-gradient-to-b from-gray-900 to-gray-800 text-white flex flex-col shadow-xl fixed h-screen z-20">
-      {sidebarContent}
-    </aside>
+    <aside className="hidden lg:block fixed top-0 left-0 h-full w-56 bg-gradient-to-b from-gray-900 to-gray-800 text-white flex flex-col shadow-xl z-20">
+    {sidebarContent}
+  </aside>
   )
 }
