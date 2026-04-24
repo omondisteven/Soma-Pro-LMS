@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import Sidebar from '@/components/Sidebar'
-import Topbar from '@/components/Topbar'
-import MobileHeader from '@/components/MobileHeader'
+import Sidebar from '@/components/Layout/Sidebar'
+import Topbar from '@/components/Layout/Topbar'
+import MobileHeader from '@/components/Layout/MobileHeader'
 import { useSidebar } from '@/context/SidebarContext'
 
 export default function AuthenticatedLayout({
@@ -32,6 +32,7 @@ export default function AuthenticatedLayout({
     setLoading(false)
   }, [router])
 
+  // Don't show layout on auth pages
   const isAuthPage = pathname === '/login' || pathname === '/register'
   if (isAuthPage) {
     return <>{children}</>
@@ -73,10 +74,10 @@ export default function AuthenticatedLayout({
       
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Mobile Header - only shows on mobile */}
+        {/* Mobile Header - only visible on mobile */}
         <MobileHeader />
         
-        {/* Desktop Topbar - hidden on mobile, shown on desktop */}
+        {/* Desktop Topbar - hidden on mobile */}
         <div className="hidden lg:block">
           <Topbar 
             userName={user.name} 
@@ -85,9 +86,9 @@ export default function AuthenticatedLayout({
           />
         </div>
         
-        {/* Page Content with padding for mobile header */}
-        <main className={`flex-1 overflow-y-auto ${isMobile ? 'pt-14' : ''}`}>
-          <div className="p-3 md:p-6 lg:p-8 max-w-7xl mx-auto">
+        {/* Page Content */}
+        <main className={`flex-1 overflow-y-auto ${isMobile ? 'mt-14' : ''}`}>
+          <div className="p-4 md:p-6 lg:p-8">
             {children}
           </div>
         </main>

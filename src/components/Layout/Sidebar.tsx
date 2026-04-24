@@ -106,7 +106,6 @@ export default function Sidebar({ userRole }: SidebarProps) {
           <span className="font-normal">Dashboard</span>
         </Link>
 
-        {/* Collapsible Courses Section */}
         <div className="mt-1">
           <button
             onClick={() => setIsCoursesOpen(!isCoursesOpen)}
@@ -164,7 +163,6 @@ export default function Sidebar({ userRole }: SidebarProps) {
           )}
         </div>
 
-        {/* Other Menu Items */}
         <div className="mt-2 space-y-0.5">
           {userRole === 'STUDENT' && (
             <Link
@@ -210,7 +208,6 @@ export default function Sidebar({ userRole }: SidebarProps) {
             </Link>
           )}
 
-          {/* Reports Section */}
           <div className="mt-1">
             <button
               onClick={() => setIsReportsOpen(!isReportsOpen)}
@@ -297,7 +294,6 @@ export default function Sidebar({ userRole }: SidebarProps) {
   if (isMobile) {
     return (
       <>
-        {/* Overlay */}
         {isOpen && (
           <div 
             className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300"
@@ -305,7 +301,6 @@ export default function Sidebar({ userRole }: SidebarProps) {
           />
         )}
         
-        {/* Sidebar Panel */}
         <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-gray-900 to-gray-800 text-white transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}>
