@@ -10,7 +10,6 @@ import {
   Calendar, 
   Award, 
   Settings,
-  LogOut,
   ChevronDown,
   ChevronRight,
   BarChart3,
@@ -30,11 +29,10 @@ interface SidebarProps {
 
 export default function Sidebar({ userRole }: SidebarProps) {
   const pathname = usePathname()
-  const router = useRouter()
-  const { isOpen, closeSidebar } = useSidebar()
   const [isCoursesOpen, setIsCoursesOpen] = useState(false)
   const [isReportsOpen, setIsReportsOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const { isOpen, closeSidebar } = useSidebar()
 
   useEffect(() => {
     const checkMobile = () => {
@@ -44,18 +42,6 @@ export default function Sidebar({ userRole }: SidebarProps) {
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
-
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' })
-    } catch (error) {
-      console.error('Logout error:', error)
-    } finally {
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-      router.push('/login')
-    }
-  }
 
   const isActive = (href: string) => {
     return pathname === href || pathname?.startsWith(href + '/')
@@ -97,6 +83,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
       </div>
       
       <nav className="flex-1 py-4 overflow-y-auto">
+        {/* Dashboard */}
         <Link
           href="/dashboard"
           onClick={handleLinkClick}
@@ -106,6 +93,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
           <span className="font-normal">Dashboard</span>
         </Link>
 
+        {/* Collapsible Courses Section */}
         <div className="mt-1">
           <button
             onClick={() => setIsCoursesOpen(!isCoursesOpen)}
@@ -163,6 +151,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
           )}
         </div>
 
+        {/* Other Menu Items */}
         <div className="mt-2 space-y-0.5">
           {userRole === 'STUDENT' && (
             <Link
@@ -208,6 +197,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
             </Link>
           )}
 
+          {/* Reports Section */}
           <div className="mt-1">
             <button
               onClick={() => setIsReportsOpen(!isReportsOpen)}
@@ -278,15 +268,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
         </div>
       </nav>
       
-      <div className="p-4 border-t border-gray-700">
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-2.5 px-3 py-2 mx-2 rounded-lg transition-all text-sm text-gray-300 hover:bg-gray-700 hover:text-white w-full"
-        >
-          <LogOut size={18} />
-          <span className="font-normal">Logout</span>
-        </button>
-      </div>
+      {/* Removed Logout button section - now only in Navbar/UserMenu */}
     </>
   )
 
