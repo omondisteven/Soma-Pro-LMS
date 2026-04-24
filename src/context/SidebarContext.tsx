@@ -4,13 +4,21 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 
 interface SidebarContextType {
   isOpen: boolean
-  setIsOpen: (open: boolean) => void
   toggleSidebar: () => void
   closeSidebar: () => void
+  openSidebar: () => void
   isMobile: boolean
 }
 
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined)
+
+export function useSidebar() {
+  const context = useContext(SidebarContext)
+  if (!context) {
+    throw new Error('useSidebar must be used within a SidebarProvider')
+  }
+  return context
+}
 
 export function SidebarProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -32,26 +40,25 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
+  // Prevent body scroll when sidebar is open on mobile
   useEffect(() => {
-    if (isMobile) {
-      setIsOpen(false)
+    if (isMobile && isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
     }
-  }, [typeof window !== 'undefined' ? window.location.pathname : '', isMobile])
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [isMobile, isOpen])
 
   const toggleSidebar = () => setIsOpen(!isOpen)
   const closeSidebar = () => setIsOpen(false)
+  const openSidebar = () => setIsOpen(true)
 
   return (
-    <SidebarContext.Provider value={{ isOpen, setIsOpen, toggleSidebar, closeSidebar, isMobile }}>
+    <SidebarContext.Provider value={{ isOpen, toggleSidebar, closeSidebar, openSidebar, isMobile }}>
       {children}
     </SidebarContext.Provider>
   )
-}
-
-export function useSidebar() {
-  const context = useContext(SidebarContext)
-  if (context === undefined) {
-    throw new Error('useSidebar must be used within a SidebarProvider')
-  }
-  return context
 }

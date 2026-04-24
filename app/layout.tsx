@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
-import { SidebarProvider } from '@/context/SidebarContext'  // Note: @/src/context
+import { SidebarProvider } from '@/context/SidebarContext'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { 
@@ -31,9 +31,19 @@ interface SidebarProps {
 export default function Sidebar({ userRole }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
-  const { isOpen, closeSidebar, isMobile } = useSidebar()
+  const { isOpen, closeSidebar } = useSidebar()
   const [isCoursesOpen, setIsCoursesOpen] = useState(false)
   const [isReportsOpen, setIsReportsOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   const handleLogout = async () => {
     try {
@@ -59,6 +69,12 @@ export default function Sidebar({ userRole }: SidebarProps) {
     }
   `
 
+  const handleLinkClick = () => {
+    if (isMobile) {
+      closeSidebar()
+    }
+  }
+
   const sidebarContent = (
     <>
       <div className="p-4 border-b border-gray-700">
@@ -81,10 +97,9 @@ export default function Sidebar({ userRole }: SidebarProps) {
       </div>
       
       <nav className="flex-1 py-4 overflow-y-auto">
-        {/* Dashboard */}
         <Link
           href="/dashboard"
-          onClick={closeSidebar}
+          onClick={handleLinkClick}
           className={menuItemClass(pathname === '/dashboard')}
         >
           <Home size={18} />
@@ -108,7 +123,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
             <div className="ml-6 mt-0.5 space-y-0.5">
               <Link
                 href="/courses"
-                onClick={closeSidebar}
+                onClick={handleLinkClick}
                 className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-sm ${
                   pathname === '/courses'
                     ? 'bg-blue-600 text-white shadow-md'
@@ -121,7 +136,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
               {userRole === 'STUDENT' && (
                 <Link
                   href="/courses/public"
-                  onClick={closeSidebar}
+                  onClick={handleLinkClick}
                   className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-sm ${
                     pathname === '/courses/public'
                       ? 'bg-blue-600 text-white shadow-md'
@@ -135,7 +150,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
               {userRole === 'TEACHER' && (
                 <Link
                   href="/enroll-students"
-                  onClick={closeSidebar}
+                  onClick={handleLinkClick}
                   className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-sm ${
                     pathname === '/enroll-students'
                       ? 'bg-blue-600 text-white shadow-md'
@@ -154,7 +169,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
           {userRole === 'STUDENT' && (
             <Link
               href="/assignments"
-              onClick={closeSidebar}
+              onClick={handleLinkClick}
               className={menuItemClass(pathname === '/assignments')}
             >
               <Calendar size={18} />
@@ -165,7 +180,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
           {userRole === 'STUDENT' && (
             <Link
               href="/grades"
-              onClick={closeSidebar}
+              onClick={handleLinkClick}
               className={menuItemClass(pathname === '/grades')}
             >
               <Award size={18} />
@@ -176,7 +191,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
           {userRole === 'TEACHER' && (
             <Link
               href="/teacher/grading"
-              onClick={closeSidebar}
+              onClick={handleLinkClick}
               className={menuItemClass(pathname === '/teacher/grading')}
             >
               <Award size={18} />
@@ -187,7 +202,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
           {userRole === 'TEACHER' && (
             <Link
               href="/students"
-              onClick={closeSidebar}
+              onClick={handleLinkClick}
               className={menuItemClass(pathname === '/students')}
             >
               <Users size={18} />
@@ -212,15 +227,15 @@ export default function Sidebar({ userRole }: SidebarProps) {
               <div className="ml-6 mt-0.5 space-y-0.5">
                 {userRole === 'STUDENT' && (
                   <>
-                    <Link href="/reports/progress" onClick={closeSidebar} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <Link href="/reports/progress" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
                       <TrendingUp size={16} />
                       <span className="font-normal">Progress Report</span>
                     </Link>
-                    <Link href="/reports/grades" onClick={closeSidebar} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <Link href="/reports/grades" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
                       <Award size={16} />
                       <span className="font-normal">Grade Report</span>
                     </Link>
-                    <Link href="/reports/assignments" onClick={closeSidebar} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <Link href="/reports/assignments" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
                       <FileText size={16} />
                       <span className="font-normal">Assignment Report</span>
                     </Link>
@@ -229,23 +244,23 @@ export default function Sidebar({ userRole }: SidebarProps) {
                 
                 {userRole === 'TEACHER' && (
                   <>
-                    <Link href="/reports/course-analytics" onClick={closeSidebar} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <Link href="/reports/course-analytics" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
                       <TrendingUp size={16} />
                       <span className="font-normal">Course Analytics</span>
                     </Link>
-                    <Link href="/reports/student-performance" onClick={closeSidebar} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <Link href="/reports/student-performance" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
                       <UserCheck size={16} />
                       <span className="font-normal">Student Performance</span>
                     </Link>
-                    <Link href="/reports/assignment-analysis" onClick={closeSidebar} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <Link href="/reports/assignment-analysis" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
                       <FileText size={16} />
                       <span className="font-normal">Assignment Analysis</span>
                     </Link>
-                    <Link href="/reports/grade-distribution" onClick={closeSidebar} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <Link href="/reports/grade-distribution" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
                       <PieChart size={16} />
                       <span className="font-normal">Grade Distribution</span>
                     </Link>
-                    <Link href="/reports/finance" onClick={closeSidebar} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <Link href="/reports/finance" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
                       <DollarSign size={16} />
                       <span className="font-normal">Financial Reports</span>
                     </Link>
@@ -257,7 +272,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
           
           <Link
             href="/settings"
-            onClick={closeSidebar}
+            onClick={handleLinkClick}
             className={menuItemClass(pathname === '/settings')}
           >
             <Settings size={18} />
@@ -278,20 +293,20 @@ export default function Sidebar({ userRole }: SidebarProps) {
     </>
   )
 
-  // For mobile: slide-in panel with overlay
+  // Mobile: slide-in panel with overlay
   if (isMobile) {
     return (
       <>
         {/* Overlay */}
         {isOpen && (
           <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300 lg:hidden"
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300"
             onClick={closeSidebar}
           />
         )}
         
         {/* Sidebar Panel */}
-        <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-gray-900 to-gray-800 text-white transform transition-transform duration-300 ease-in-out lg:hidden ${
+        <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-gray-900 to-gray-800 text-white transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}>
           {sidebarContent}
@@ -300,7 +315,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
     )
   }
 
-  // For desktop: always visible sidebar
+  // Desktop: always visible sidebar
   return (
     <aside className="hidden lg:block w-56 bg-gradient-to-b from-gray-900 to-gray-800 text-white flex flex-col shadow-xl fixed h-screen z-20">
       {sidebarContent}

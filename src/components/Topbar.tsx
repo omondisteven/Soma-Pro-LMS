@@ -1,11 +1,9 @@
-// src\components\Topbar.tsx
 'use client'
 
-import { Bell, Search, User, ChevronDown, Menu, X } from 'lucide-react'
+import { Bell, Search, User, ChevronDown } from 'lucide-react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import NotificationDropdown from './NotificationDropdown'
-import { useSidebar } from '@/context/SidebarContext'
 
 interface TopbarProps {
   userName: string
@@ -17,7 +15,6 @@ export default function Topbar({ userName, userAvatar, pageTitle }: TopbarProps)
   const [showProfileMenu, setShowProfileMenu] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const router = useRouter()
-  const { toggleSidebar, isMobile } = useSidebar()
 
   const handleLogout = async () => {
     try {
@@ -33,19 +30,8 @@ export default function Topbar({ userName, userAvatar, pageTitle }: TopbarProps)
 
   return (
     <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-3 md:px-8 sticky top-0 z-30">
-      {/* Left section */}
+      {/* Left section - no hamburger menu here anymore */}
       <div className="flex items-center gap-2 md:gap-4">
-        {/* Mobile menu button - only visible on mobile */}
-        {isMobile && (
-          <button 
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            onClick={toggleSidebar}
-          >
-            <Menu size={22} className="text-gray-600" />
-          </button>
-        )}
-        
-        {/* Page Title - hidden on mobile when search is open */}
         <div className={`${isSearchOpen ? 'hidden sm:block' : 'block'}`}>
           <h1 className="text-lg md:text-2xl font-semibold text-gray-900 line-clamp-1">
             {pageTitle || 'Dashboard'}
@@ -55,7 +41,7 @@ export default function Topbar({ userName, userAvatar, pageTitle }: TopbarProps)
       
       {/* Right section */}
       <div className="flex items-center gap-2 md:gap-4">
-        {/* Search - toggle on mobile */}
+        {/* Search */}
         <div className={`${isSearchOpen ? 'absolute left-0 right-0 top-0 h-16 px-4 bg-white border-b border-gray-200 flex items-center z-40' : 'hidden md:block relative'}`}>
           <div className="relative w-full md:w-64">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
@@ -70,11 +56,10 @@ export default function Topbar({ userName, userAvatar, pageTitle }: TopbarProps)
             className="ml-3 p-2 text-gray-500 md:hidden"
             onClick={() => setIsSearchOpen(false)}
           >
-            <X size={20} />
+            ✕
           </button>
         </div>
         
-        {/* Search button for mobile */}
         <button 
           className="md:hidden p-2 hover:bg-gray-100 rounded-lg"
           onClick={() => setIsSearchOpen(true)}
@@ -82,10 +67,8 @@ export default function Topbar({ userName, userAvatar, pageTitle }: TopbarProps)
           <Search size={20} className="text-gray-600" />
         </button>
         
-        {/* Notifications */}
         <NotificationDropdown />
         
-        {/* Profile Menu */}
         <div className="relative">
           <button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
