@@ -48,24 +48,24 @@ export default function AuthenticatedLayout({
 
   if (!user) return null
 
-  const getPageTitle = () => {
-    const path = pathname || ''
-    if (path === '/dashboard') return 'Dashboard'
-    if (path === '/courses') return 'My Courses'
-    if (path === '/courses/public') return 'Browse Courses'
-    if (path === '/assignments') return 'Assignments'
-    if (path === '/grades') return 'Grades'
-    if (path === '/students') return 'Students'
-    if (path === '/enroll-students') return 'Enroll Students'
-    if (path === '/teacher/grading') return 'Grading'
-    if (path === '/profile') return 'Profile'
-    if (path === '/settings') return 'Settings'
-    if (path?.startsWith('/courses/')) return 'Course Details'
-    if (path?.startsWith('/teacher/courses/')) return 'Manage Course'
-    if (path?.startsWith('/teacher/students/')) return 'Student Details'
-    if (path?.startsWith('/reports')) return 'Reports'
-    return 'SomaPRO'
-  }
+  // const getPageTitle = () => {
+  //   const path = pathname || ''
+  //   if (path === '/dashboard') return 'Dashboard'
+  //   if (path === '/courses') return 'My Courses'
+  //   if (path === '/courses/public') return 'Browse Courses'
+  //   if (path === '/assignments') return 'Assignments'
+  //   if (path === '/grades') return 'Grades'
+  //   if (path === '/students') return 'Students'
+  //   if (path === '/enroll-students') return 'Enroll Students'
+  //   if (path === '/teacher/grading') return 'Grading'
+  //   if (path === '/profile') return 'Profile'
+  //   if (path === '/settings') return 'Settings'
+  //   if (path?.startsWith('/courses/')) return 'Course Details'
+  //   if (path?.startsWith('/teacher/courses/')) return 'Manage Course'
+  //   if (path?.startsWith('/teacher/students/')) return 'Student Details'
+  //   if (path?.startsWith('/reports')) return 'Reports'
+  //   return 'SomaPRO'
+  // }
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
@@ -82,7 +82,7 @@ export default function AuthenticatedLayout({
           <Topbar 
             userName={user.name} 
             userAvatar={user.avatar}
-            pageTitle={getPageTitle()}
+            // pageTitle={getPageTitle()}
           />
         </div>
         
