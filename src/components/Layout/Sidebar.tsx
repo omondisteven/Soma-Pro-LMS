@@ -19,7 +19,8 @@ import {
   PieChart,
   DollarSign,
   CreditCard,
-  X
+  X,
+  Shield
 } from 'lucide-react'
 import { useSidebar } from '@/context/SidebarContext'
 
@@ -93,6 +94,18 @@ export default function Sidebar({ userRole }: SidebarProps) {
           <span className="font-normal">Dashboard</span>
         </Link>
 
+        {/* User Management - for ADMIN and MANAGER only (top level) */}
+        {(userRole === 'ADMIN' || userRole === 'MANAGER') && (
+          <Link
+            href="/admin/users"
+            onClick={handleLinkClick}
+            className={menuItemClass(pathname === '/admin/users')}
+          >
+            <Shield size={18} />
+            <span className="font-normal">User Management</span>
+          </Link>
+        )}
+
         {/* Collapsible Courses Section */}
         <div className="mt-1">
           <button
@@ -154,119 +167,122 @@ export default function Sidebar({ userRole }: SidebarProps) {
         {/* Other Menu Items */}
         <div className="mt-2 space-y-0.5">
           {userRole === 'STUDENT' && (
-            <Link
-              href="/assignments"
-              onClick={handleLinkClick}
-              className={menuItemClass(pathname === '/assignments')}
-            >
-              <Calendar size={18} />
-              <span className="font-normal">Assignments</span>
-            </Link>
-          )}
-          
-          {userRole === 'STUDENT' && (
-            <Link
-              href="/grades"
-              onClick={handleLinkClick}
-              className={menuItemClass(pathname === '/grades')}
-            >
-              <Award size={18} />
-              <span className="font-normal">Grades</span>
-            </Link>
-          )}
-          
-          {userRole === 'TEACHER' && (
-            <Link
-              href="/teacher/grading"
-              onClick={handleLinkClick}
-              className={menuItemClass(pathname === '/teacher/grading')}
-            >
-              <Award size={18} />
-              <span className="font-normal">Grading</span>
-            </Link>
+            <>
+              <Link
+                href="/assignments"
+                onClick={handleLinkClick}
+                className={menuItemClass(pathname === '/assignments')}
+              >
+                <Calendar size={18} />
+                <span className="font-normal">Assignments</span>
+              </Link>
+              
+              <Link
+                href="/grades"
+                onClick={handleLinkClick}
+                className={menuItemClass(pathname === '/grades')}
+              >
+                <Award size={18} />
+                <span className="font-normal">Grades</span>
+              </Link>
+            </>
           )}
           
           {userRole === 'TEACHER' && (
-            <Link
-              href="/students"
-              onClick={handleLinkClick}
-              className={menuItemClass(pathname === '/students')}
-            >
-              <Users size={18} />
-              <span className="font-normal">Students</span>
-            </Link>
+            <>
+              <Link
+                href="/teacher/grading"
+                onClick={handleLinkClick}
+                className={menuItemClass(pathname === '/teacher/grading')}
+              >
+                <Award size={18} />
+                <span className="font-normal">Grading</span>
+              </Link>
+              
+              <Link
+                href="/students"
+                onClick={handleLinkClick}
+                className={menuItemClass(pathname === '/students')}
+              >
+                <Users size={18} />
+                <span className="font-normal">Students</span>
+              </Link>
+            </>
           )}
 
-          {/* Reports Section */}
-          <div className="mt-1">
-            <button
-              onClick={() => setIsReportsOpen(!isReportsOpen)}
-              className="w-full flex items-center justify-between px-3 py-2 mx-2 rounded-lg transition-all text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
-            >
-              <div className="flex items-center gap-2.5">
-                <BarChart3 size={18} />
-                <span className="font-medium">Reports</span>
-              </div>
-              {isReportsOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-            </button>
-            
-            {isReportsOpen && (
-              <div className="ml-6 mt-0.5 space-y-0.5">
-                {userRole === 'STUDENT' && (
-                  <>
-                    <Link href="/reports/progress" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
-                      <TrendingUp size={16} />
-                      <span className="font-normal">Progress Report</span>
-                    </Link>
-                    <Link href="/reports/grades" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
-                      <Award size={16} />
-                      <span className="font-normal">Grade Report</span>
-                    </Link>
-                    <Link href="/reports/assignments" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
-                      <FileText size={16} />
-                      <span className="font-normal">Assignment Report</span>
-                    </Link>
-                  </>
-                )}
-
-                { (userRole === 'ADMIN' || userRole === 'MANAGER') && (
-                  <Link
-                    href="/admin/users"
-                    onClick={handleLinkClick}
-                    className={menuItemClass(pathname === '/admin/users')}
-                  >
-                    <Users size={18} />
-                    <span className="font-normal">User Management</span>
+          {/* Reports Section - For Teachers only */}
+          {userRole === 'TEACHER' && (
+            <div className="mt-1">
+              <button
+                onClick={() => setIsReportsOpen(!isReportsOpen)}
+                className="w-full flex items-center justify-between px-3 py-2 mx-2 rounded-lg transition-all text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
+              >
+                <div className="flex items-center gap-2.5">
+                  <BarChart3 size={18} />
+                  <span className="font-medium">Reports</span>
+                </div>
+                {isReportsOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+              </button>
+              
+              {isReportsOpen && (
+                <div className="ml-6 mt-0.5 space-y-0.5">
+                  <Link href="/reports/course-analytics" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <TrendingUp size={16} />
+                    <span className="font-normal">Course Analytics</span>
                   </Link>
-                )}
-                
-                {userRole === 'TEACHER' && (
-                  <>
-                    <Link href="/reports/course-analytics" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
-                      <TrendingUp size={16} />
-                      <span className="font-normal">Course Analytics</span>
-                    </Link>
-                    <Link href="/reports/student-performance" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
-                      <UserCheck size={16} />
-                      <span className="font-normal">Student Performance</span>
-                    </Link>
-                    <Link href="/reports/assignment-analysis" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
-                      <FileText size={16} />
-                      <span className="font-normal">Assignment Analysis</span>
-                    </Link>
-                    <Link href="/reports/grade-distribution" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
-                      <PieChart size={16} />
-                      <span className="font-normal">Grade Distribution</span>
-                    </Link>
-                    <Link href="/reports/finance" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
-                      <DollarSign size={16} />
-                      <span className="font-normal">Financial Reports</span>
-                    </Link>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
+                  <Link href="/reports/student-performance" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <UserCheck size={16} />
+                    <span className="font-normal">Student Performance</span>
+                  </Link>
+                  <Link href="/reports/assignment-analysis" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <FileText size={16} />
+                    <span className="font-normal">Assignment Analysis</span>
+                  </Link>
+                  <Link href="/reports/grade-distribution" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <PieChart size={16} />
+                    <span className="font-normal">Grade Distribution</span>
+                  </Link>
+                  <Link href="/reports/finance" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <DollarSign size={16} />
+                    <span className="font-normal">Financial Reports</span>
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Reports Section - For Students only */}
+          {userRole === 'STUDENT' && (
+            <div className="mt-1">
+              <button
+                onClick={() => setIsReportsOpen(!isReportsOpen)}
+                className="w-full flex items-center justify-between px-3 py-2 mx-2 rounded-lg transition-all text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
+              >
+                <div className="flex items-center gap-2.5">
+                  <BarChart3 size={18} />
+                  <span className="font-medium">Reports</span>
+                </div>
+                {isReportsOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+              </button>
+              
+              {isReportsOpen && (
+                <div className="ml-6 mt-0.5 space-y-0.5">
+                  <Link href="/reports/progress" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <TrendingUp size={16} />
+                    <span className="font-normal">Progress Report</span>
+                  </Link>
+                  <Link href="/reports/grades" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <Award size={16} />
+                    <span className="font-normal">Grade Report</span>
+                  </Link>
+                  <Link href="/reports/assignments" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <FileText size={16} />
+                    <span className="font-normal">Assignment Report</span>
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
           
           <Link
             href="/settings"
@@ -278,12 +294,9 @@ export default function Sidebar({ userRole }: SidebarProps) {
           </Link>
         </div>
       </nav>
-      
-      {/* Removed Logout button section - now only in Navbar/UserMenu */}
     </>
   )
 
-  // Mobile: slide-in panel with overlay
   if (isMobile) {
     return (
       <>
@@ -303,10 +316,9 @@ export default function Sidebar({ userRole }: SidebarProps) {
     )
   }
 
-  // Desktop: always visible sidebar
   return (
     <aside className="hidden lg:block fixed top-0 left-0 h-full w-56 bg-gradient-to-b from-gray-900 to-gray-800 text-white flex flex-col shadow-xl z-20">
-    {sidebarContent}
-  </aside>
+      {sidebarContent}
+    </aside>
   )
 }
