@@ -1,5 +1,5 @@
-import { PrismaClient } from '@prisma/client'
-import bcrypt from 'bcryptjs'
+const { PrismaClient } = require('@prisma/client')
+const bcrypt = require('bcryptjs')
 
 const prisma = new PrismaClient()
 
@@ -21,22 +21,26 @@ async function main() {
   })
   console.log('✅ Admin user created:', admin.email)
 
-  // Create a sample manager user (optional)
-  const managerPassword = await bcrypt.hash('Manager@123', 10)
-  const manager = await prisma.user.upsert({
-    where: { email: 'manager@somapro.com' },
-    update: {},
-    create: {
-      email: 'manager@somapro.com',
-      password: managerPassword,
-      name: 'Department Manager',
-      role: 'MANAGER',
-      highSchoolCompleted: false,
-    },
-  })
-  console.log('✅ Manager user created:', manager.email)
+  // Create a sample manager user
+  try {
+    const managerPassword = await bcrypt.hash('Manager@123', 10)
+    const manager = await prisma.user.upsert({
+      where: { email: 'manager@somapro.com' },
+      update: {},
+      create: {
+        email: 'manager@somapro.com',
+        password: managerPassword,
+        name: 'Department Manager',
+        role: 'MANAGER',
+        highSchoolCompleted: false,
+      },
+    })
+    console.log('✅ Manager user created:', manager.email)
+  } catch (error) {
+    console.log('⚠️ Could not create manager user:', error.message)
+  }
 
-  // Create a sample teacher user (optional)
+  // Create a sample teacher user
   const teacherPassword = await bcrypt.hash('Teacher@123', 10)
   const teacher = await prisma.user.upsert({
     where: { email: 'teacher@somapro.com' },
@@ -51,7 +55,7 @@ async function main() {
   })
   console.log('✅ Teacher user created:', teacher.email)
 
-  // Create a sample student user (optional)
+  // Create a sample student user
   const studentPassword = await bcrypt.hash('Student@123', 10)
   const student = await prisma.user.upsert({
     where: { email: 'student@somapro.com' },
