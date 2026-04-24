@@ -228,6 +228,18 @@ export default function Sidebar({ userRole }: SidebarProps) {
                     </Link>
                   </>
                 )}
+
+                // Add to menuItems for ADMIN and MANAGER
+                { (userRole === 'ADMIN' || userRole === 'MANAGER') && (
+                  <Link
+                    href="/admin/users"
+                    onClick={handleLinkClick}
+                    className={menuItemClass(pathname === '/admin/users')}
+                  >
+                    <Users size={18} />
+                    <span className="font-normal">User Management</span>
+                  </Link>
+                )}
                 
                 {userRole === 'TEACHER' && (
                   <>

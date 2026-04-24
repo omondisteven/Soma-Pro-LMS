@@ -52,13 +52,11 @@ export default function HomePage() {
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
             A modern learning management system for teachers and students. Create courses, track progress, and achieve your learning goals.
           </p>
+          // Change the buttons section to only show Sign In
           <div className="flex gap-4 justify-center">
-            <Link href="/register" className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center gap-2">
-              Start Learning Today
-              <ArrowRight size={20} />
-            </Link>
-            <Link href="/login" className="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors">
+            <Link href="/login" className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center gap-2">
               Sign In
+              <ArrowRight size={20} />
             </Link>
           </div>
         </div>
