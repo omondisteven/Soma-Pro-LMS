@@ -4,25 +4,26 @@
 import { useEffect, useState } from 'react'
 import { Eye, CheckCircle, XCircle, Clock } from 'lucide-react'
 import StudentProfileModal from '@/components/StudentProfileModal'
+import { Application } from '@/types/application'
 
-interface Application {
-  id: string
-  appliedAt: string
-  status: string
-  student: {
-    id: string
-    name: string
-    email: string
-    highSchoolCompleted: boolean
-    qualification: string | null
-    qualificationDiscipline: string | null
-  }
-  course: {
-    id: string
-    title: string
-    shortName: string
-  }
-}
+// interface Application {
+//   id: string
+//   appliedAt: string
+//   status: string
+//   student: {
+//     id: string
+//     name: string
+//     email: string
+//     highSchoolCompleted: boolean
+//     qualification: string | null
+//     qualificationDiscipline: string | null
+//   }
+//   course: {
+//     id: string
+//     title: string
+//     shortName: string
+//   }
+// }
 
 export default function EnrollStudentsPage() {
   const [applications, setApplications] = useState<Application[]>([])
