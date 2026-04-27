@@ -1,14 +1,26 @@
+// app/(authenticated)/admin/enroll-students/page.tsx
 'use client'
 
 import { useEffect, useState } from 'react'
 import { Eye, CheckCircle, XCircle, Clock, X } from 'lucide-react'
 import StudentProfileModal from '@/components/StudentProfileModal'
 
+
+interface Payment {
+  id: string
+  amount: number
+  paidAmount: number
+  method: string
+  status: string
+  transactionId?: string
+}
+
 interface Application {
   id: string
   appliedAt: string
   status: string
   totalPaid: number
+  payments: Payment[]
   student: {
     id: string
     name: string
@@ -21,6 +33,8 @@ interface Application {
     id: string
     title: string
     shortName: string
+    price: number
+    currency: string
   }
 }
 

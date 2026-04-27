@@ -4,9 +4,22 @@
 import { useState } from 'react'
 import { X, GraduationCap, CheckCircle, XCircle } from 'lucide-react'
 
+interface Payment {
+  id: string
+  amount: number
+  paidAmount: number
+  method: string
+  status: string
+  transactionId?: string
+}
+
 interface Application {
   id: string
   appliedAt: string
+  status: string
+  totalPaid: number
+  payments?: Payment[] // ✅ ADD THIS
+
   student: {
     id: string
     name: string
@@ -15,10 +28,13 @@ interface Application {
     qualification: string | null
     qualificationDiscipline: string | null
   }
+
   course: {
     id: string
     title: string
     shortName: string
+    price: number        // ✅ ADD
+    currency: string     // ✅ ADD
   }
 }
 
@@ -151,6 +167,81 @@ export default function StudentProfileModal({
               <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                 <p><span className="font-medium">Course Title:</span> {application.course.title}</p>
                 <p><span className="font-medium">Course Code:</span> {application.course.shortName}</p>
+              </div>
+            </div>
+
+            {/* Payment Information */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Payment Information
+              </h3>
+
+              <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                
+                <p>
+                  <span className="font-medium">Total Paid:</span>{' '}
+                  <span className="text-green-600 font-semibold">
+                    {application.course.currency} {application.totalPaid.toLocaleString()}
+                  </span>
+                </p>
+
+                <p>
+                  <span className="font-medium">Course Price:</span>{' '}
+                  {application.course.currency} {application.course.price.toLocaleString()}
+                </p>
+
+                <p>
+                  <span className="font-medium">Balance:</span>{' '}
+                  {application.course.currency}{' '}
+                  {(application.course.price - application.totalPaid).toLocaleString()}
+                </p>
+
+                <p>
+                  <span className="font-medium">Payment Status:</span>{' '}
+                  {application.totalPaid >= application.course.price ? (
+                    <span className="text-green-600 font-medium">Fully Paid</span>
+                  ) : (
+                    <span className="text-yellow-600 font-medium">Partial Payment</span>
+                  )}
+                </p>
+
+                {/* Payment Methods Breakdown */}
+                {application.payments && application.payments.length > 0 && (
+                  <div className="pt-2 border-t">
+                    <p className="font-medium mb-2">Payment Records:</p>
+
+                    <div className="space-y-2">
+                      {application.payments.map((payment) => (
+                        <div
+                          key={payment.id}
+                          className="bg-white p-3 rounded border text-sm"
+                        >
+                          <p>
+                            <span className="font-medium">Method:</span> {payment.method}
+                          </p>
+
+                          <p>
+                            <span className="font-medium">Amount:</span>{' '}
+                            {application.course.currency} {payment.amount.toLocaleString()}
+                          </p>
+
+                          <p>
+                            <span className="font-medium">Status:</span>{' '}
+                            {payment.status}
+                          </p>
+
+                          {/* CASH Receipt */}
+                          {payment.method === 'CASH' && payment.transactionId && (
+                            <p>
+                              <span className="font-medium">Receipt No:</span>{' '}
+                              {payment.transactionId}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

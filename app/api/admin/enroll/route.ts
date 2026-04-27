@@ -1,3 +1,4 @@
+// app\api\admin\enroll\route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getUserFromToken } from '@/lib/auth'
@@ -112,7 +113,7 @@ export async function GET(request: NextRequest) {
   }
   
   try {
-    // Get all applications with payment (for admin enrollment)
+    // Step 1: Fetch applications
     const applications = await prisma.application.findMany({
       where: {
         OR: [
@@ -138,14 +139,34 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             title: true,
-            shortName: true
+            shortName: true,
+            price: true,        // ✅ ADD
+            currency: true      // ✅ ADD
           }
         }
       },
       orderBy: { appliedAt: 'desc' }
     })
-    
-    return NextResponse.json({ applications })
+
+    // Step 2: Attach payments manually
+    const applicationsWithPayments = await Promise.all(
+      applications.map(async (app) => {
+        const payments = await prisma.payment.findMany({
+          where: {
+            studentId: app.student.id,
+            courseId: app.course.id
+          },
+          orderBy: { createdAt: 'desc' }
+        })
+
+        return {
+          ...app,
+          payments
+        }
+      })
+    )
+
+    return NextResponse.json({ applications: applicationsWithPayments })
   } catch (error) {
     console.error('Error fetching applications:', error)
     return NextResponse.json(
