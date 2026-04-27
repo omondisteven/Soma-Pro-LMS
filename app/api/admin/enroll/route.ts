@@ -140,8 +140,22 @@ export async function GET(request: NextRequest) {
             id: true,
             title: true,
             shortName: true,
-            price: true,        // ✅ ADD
-            currency: true      // ✅ ADD
+            price: true,        // ✅ ADD THIS
+            currency: true      // ✅ ADD THIS
+          }
+        },
+        payments: {            // ✅ ADD THIS
+          where: {
+            status: 'COMPLETED'
+          },
+          select: {
+            id: true,
+            amount: true,
+            paidAmount: true,
+            method: true,
+            status: true,
+            transactionId: true,
+            createdAt: true
           }
         }
       },

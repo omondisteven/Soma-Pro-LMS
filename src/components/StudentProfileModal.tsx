@@ -18,7 +18,7 @@ interface Application {
   appliedAt: string
   status: string
   totalPaid: number
-  payments?: Payment[] // ✅ ADD THIS
+  // payments?: Payment[] // ✅ ADD THIS
 
   student: {
     id: string
@@ -36,6 +36,14 @@ interface Application {
     price: number        // ✅ ADD
     currency: string     // ✅ ADD
   }
+  payments: {         // ✅ ADD
+    id: string
+    amount: number
+    paidAmount: number
+    method: string
+    status: string
+    transactionId?: string | null
+  }[]
 }
 
 interface StudentProfileModalProps {

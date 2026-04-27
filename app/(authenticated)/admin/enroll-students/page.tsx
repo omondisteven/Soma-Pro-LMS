@@ -6,21 +6,21 @@ import { Eye, CheckCircle, XCircle, Clock, X } from 'lucide-react'
 import StudentProfileModal from '@/components/StudentProfileModal'
 
 
-interface Payment {
-  id: string
-  amount: number
-  paidAmount: number
-  method: string
-  status: string
-  transactionId?: string
-}
+// interface Payment {
+//   id: string
+//   amount: number
+//   paidAmount: number
+//   method: string
+//   status: string
+//   transactionId?: string
+// }
 
 interface Application {
   id: string
   appliedAt: string
   status: string
   totalPaid: number
-  payments: Payment[]
+
   student: {
     id: string
     name: string
@@ -29,13 +29,23 @@ interface Application {
     qualification: string | null
     qualificationDiscipline: string | null
   }
+
   course: {
     id: string
     title: string
     shortName: string
-    price: number
-    currency: string
+    price: number        // ✅ ADD
+    currency: string     // ✅ ADD
   }
+
+  payments: {           // ✅ ADD
+    id: string
+    amount: number
+    paidAmount: number
+    method: string
+    status: string
+    transactionId?: string | null
+  }[]
 }
 
 export default function AdminEnrollStudentsPage() {
