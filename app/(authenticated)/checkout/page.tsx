@@ -1,3 +1,4 @@
+// app\(authenticated)\checkout\page.tsx
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -12,8 +13,7 @@ import {
   ArrowLeft,
   Loader2,
   CheckCircle,
-  AlertCircle,
-  Banknote
+  AlertCircle
 } from 'lucide-react'
 
 interface Course {
@@ -59,13 +59,14 @@ export default function CheckoutPage() {
   const [phoneNumber, setPhoneNumber] = useState('')
   const [phoneError, setPhoneError] = useState('')
   const [email, setEmail] = useState('')
-  const [receiptNumber, setReceiptNumber] = useState('')
-  const [receiptError, setReceiptError] = useState('')
   const [paymentAmount, setPaymentAmount] = useState<number>(0)
   const [paymentType, setPaymentType] = useState<'full' | 'partial'>('full')
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [paymentSuccess, setPaymentSuccess] = useState(false)
+  const [paymentSuccess, setPaymentSuccess] = useState(false) // Renamed from paymentStatus to avoid confusion
+
+  const [cashReference, setCashReference] = useState('')
+  const [cashError, setCashError] = useState('')
 
   useEffect(() => {
     if (courseId) {
@@ -86,15 +87,6 @@ export default function CheckoutPage() {
     return isValid
   }
 
-  const validateReceiptNumber = (receipt: string): boolean => {
-    if (!receipt.trim()) {
-      setReceiptError('Receipt number is required for cash payments')
-      return false
-    }
-    setReceiptError('')
-    return true
-  }
-
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setPhoneNumber(value)
@@ -102,16 +94,6 @@ export default function CheckoutPage() {
       validatePhoneNumber(value)
     } else {
       setPhoneError('')
-    }
-  }
-
-  const handleReceiptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setReceiptNumber(value)
-    if (value) {
-      validateReceiptNumber(value)
-    } else {
-      setReceiptError('')
     }
   }
 
@@ -161,57 +143,6 @@ export default function CheckoutPage() {
     }
   }
 
-  const handleCashPayment = async () => {
-    if (!courseId) {
-      setError('Course not found')
-      return
-    }
-
-    if (!validateReceiptNumber(receiptNumber)) {
-      setError('Please provide a valid receipt number')
-      return
-    }
-
-    setProcessing(true)
-    setError(null)
-    const token = localStorage.getItem('token')
-    
-    try {
-      // Record cash payment
-      const response = await fetch('/api/payments/cash/record', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          courseId,
-          amount: paymentAmount,
-          receiptNumber,
-          paymentType
-        })
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        toast.success('Payment recorded successfully!')
-        setPaymentSuccess(true)
-        setSuccess(true)
-        setTimeout(() => {
-          router.push('/courses')
-        }, 3000)
-      } else {
-        setError(data.error || 'Failed to record cash payment')
-        setProcessing(false)
-      }
-    } catch (error) {
-      console.error('Cash payment error:', error)
-      setError('Failed to record cash payment. Please try again.')
-      setProcessing(false)
-    }
-  }
-
   const handleMpesaPayment = async () => {
     if (!courseId) {
       setError('Course not found')
@@ -242,6 +173,7 @@ export default function CheckoutPage() {
       if (stkData.ResponseCode === '0') {
         toast.success('STK Push sent! Please check your phone.')
         
+        // Poll for payment status
         const pollInterval = setInterval(async () => {
           const statusRes = await fetch(`https://e-biz-stk-prompt-page.vercel.app/api/stk_api/check_payment_status?checkout_id=${stkData.CheckoutRequestID}`)
           const statusData = await statusRes.json()
@@ -249,6 +181,7 @@ export default function CheckoutPage() {
           if (statusData.status === 'Success') {
             clearInterval(pollInterval)
             
+            // Record payment in our database
             await fetch('/api/payments/mpesa/record', {
               method: 'POST',
               headers: {
@@ -276,6 +209,7 @@ export default function CheckoutPage() {
           }
         }, 3000)
         
+        // Timeout after 90 seconds
         setTimeout(() => {
           clearInterval(pollInterval)
           if (!paymentSuccess) {
@@ -370,10 +304,8 @@ export default function CheckoutPage() {
       setError('Please select a payment method')
       return
     }
-    
-    if (selectedMethod === 'CASH') {
-      await handleCashPayment()
-    } else if (selectedMethod === 'MPESA') {
+
+    if (selectedMethod === 'MPESA') {
       if (!phoneNumber) {
         setError('Please enter your M-Pesa phone number')
         return
@@ -383,20 +315,73 @@ export default function CheckoutPage() {
         return
       }
       await handleMpesaPayment()
+
     } else if (selectedMethod === 'STRIPE') {
       if (!email) {
         setError('Please enter your email address')
         return
       }
       await handleStripePayment()
+
     } else if (selectedMethod === 'PAYPAL') {
       if (!email) {
         setError('Please enter your email address')
         return
       }
       await handlePayPalPayment()
+
+    } else if (selectedMethod === 'CASH') {
+      if (!cashReference.trim()) {
+        setCashError('Receipt/reference number is required')
+        return
+      }
+
+      await handleCashPayment()
     }
   }
+
+  const handleCashPayment = async () => {
+    setProcessing(true)
+    setError(null)
+
+    const token = localStorage.getItem('token')
+
+    try {
+      const res = await fetch('/api/payments/cash', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          courseId,
+          amount: paymentAmount,
+          paymentType,
+          reference: cashReference
+        })
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to record payment')
+      }
+
+      toast.success('Payment recorded. Awaiting verification.')
+
+      setSuccess(true)
+
+      setTimeout(() => {
+        router.push('/courses')
+      }, 3000)
+
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setProcessing(false)
+    }
+  }
+
 
   if (loading) {
     return (
@@ -427,21 +412,17 @@ export default function CheckoutPage() {
         <div className="bg-green-50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
           <CheckCircle size={48} className="text-green-600" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          {selectedMethod === 'CASH' ? 'Payment Recorded!' : 'Payment Initiated!'}
-        </h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Payment Initiated!</h2>
         <p className="text-gray-600 mb-4">
-          {selectedMethod === 'CASH' 
-            ? 'Your cash payment has been recorded. The administrator will verify your payment.'
-            : selectedMethod === 'MPESA' 
-              ? 'Please check your phone and enter your M-Pesa PIN to complete the payment.'
-              : 'Your payment is being processed.'}
+          {selectedMethod === 'MPESA' 
+            ? 'Please check your phone and enter your M-Pesa PIN to complete the payment.'
+            : 'Your payment is being processed.'}
         </p>
         <p className="text-sm text-gray-500">You will be redirected shortly...</p>
       </div>
     )
   }
-
+  
   const remainingAmount = course.price - (application?.totalPaid || 0)
   const minPartialAmount = Math.min(1000, remainingAmount)
 
@@ -567,27 +548,6 @@ export default function CheckoutPage() {
           )}
           
           <div className="space-y-3 mb-6">
-            {/* Cash Payment */}
-            <label className="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-              <input
-                type="radio"
-                name="paymentMethod"
-                value="CASH"
-                checked={selectedMethod === 'CASH'}
-                onChange={(e) => setSelectedMethod(e.target.value)}
-                className="mr-4"
-              />
-              <div className="flex items-center gap-3 flex-1">
-                <div className="w-12 h-8 bg-green-100 rounded-lg flex items-center justify-center text-xl">
-                  💵
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">Cash / Bank Transfer</p>
-                  <p className="text-sm text-gray-500">Pay via cash, bank deposit, or direct transfer</p>
-                </div>
-              </div>
-            </label>
-
             {/* Credit/Debit Card */}
             <label className="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
               <input
@@ -650,31 +610,30 @@ export default function CheckoutPage() {
                 </div>
               </div>
             </label>
-          </div>
 
-          {/* Cash Payment Fields */}
-          {selectedMethod === 'CASH' && (
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Receipt / Reference Number <span className="text-red-500">*</span>
-              </label>
+            {/* Cash / Bank Payment */}
+            <label className="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
               <input
-                type="text"
-                value={receiptNumber}
-                onChange={handleReceiptChange}
-                placeholder="Enter receipt number or bank reference"
-                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  receiptError ? 'border-red-500' : 'border-gray-300'
-                }`}
+                type="radio"
+                name="paymentMethod"
+                value="CASH"
+                checked={selectedMethod === 'CASH'}
+                onChange={(e) => setSelectedMethod(e.target.value)}
+                className="mr-4"
               />
-              {receiptError && (
-                <p className="text-xs text-red-500 mt-1">{receiptError}</p>
-              )}
-              <p className="text-xs text-gray-500 mt-1">
-                Please enter the receipt number or bank transaction reference for verification
-              </p>
-            </div>
-          )}
+              <div className="flex items-center gap-3 flex-1">
+                <div className="w-12 h-8 bg-yellow-100 rounded-lg flex items-center justify-center text-xl">
+                  🧾
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">Cash / Bank Transfer</p>
+                  <p className="text-sm text-gray-500">
+                    Pay via cash, bank deposit, or direct transfer
+                  </p>
+                </div>
+              </div>
+            </label>
+          </div>
 
           {/* M-Pesa Phone Number Field */}
           {selectedMethod === 'MPESA' && (
@@ -717,9 +676,36 @@ export default function CheckoutPage() {
             </div>
           )}
 
+          {/* Cash Reference Input */}
+          {selectedMethod === 'CASH' && (
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Receipt / Reference Number *
+              </label>
+              <input
+                type="text"
+                value={cashReference}
+                onChange={(e) => {
+                  setCashReference(e.target.value)
+                  if (e.target.value.trim()) setCashError('')
+                }}
+                placeholder="Enter receipt or bank reference number"
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  cashError ? 'border-red-500' : 'border-gray-300'
+                }`}
+              />
+              {cashError && (
+                <p className="text-xs text-red-500 mt-1">{cashError}</p>
+              )}
+              <p className="text-xs text-gray-500 mt-1">
+                This will be verified during application approval
+              </p>
+            </div>
+          )}
+
           <button
             onClick={handlePayment}
-            disabled={processing || paymentAmount <= 0 || (selectedMethod === 'CASH' && !receiptNumber)}
+            disabled={processing || paymentAmount <= 0}
             className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {processing ? (
@@ -730,7 +716,7 @@ export default function CheckoutPage() {
             ) : (
               <>
                 <Lock size={18} />
-                {selectedMethod === 'CASH' ? 'Confirm Payment' : `Pay ${course.currency} ${paymentAmount.toLocaleString()}`}
+                Pay {course.currency} {paymentAmount.toLocaleString()}
               </>
             )}
           </button>
