@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Check, X, BookOpen, User } from 'lucide-react'
+import { Check, X, BookOpen, User, Trash2 } from 'lucide-react'
 
 interface Teacher {
   id: string
@@ -23,6 +23,7 @@ export default function AssignCoursePage() {
   const [selectedCourse, setSelectedCourse] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [teacherMap, setTeacherMap] = useState<Map<string, Teacher>>(new Map())
 
   useEffect(() => {
     fetchData()
@@ -45,8 +46,16 @@ export default function AssignCoursePage() {
       
       setTeachers(teachersData.teachers || [])
       setCourses(coursesData.courses || [])
+      
+      // Create teacher map for quick lookup
+      const map = new Map()
+      teachersData.teachers?.forEach((t: Teacher) => {
+        map.set(t.id, t)
+      })
+      setTeacherMap(map)
     } catch (error) {
       console.error('Error fetching data:', error)
+      setMessage({ type: 'error', text: 'Failed to load data' })
     } finally {
       setLoading(false)
     }
@@ -76,13 +85,33 @@ export default function AssignCoursePage() {
         setMessage({ type: 'success', text: 'Course assigned successfully!' })
         setSelectedTeacher('')
         setSelectedCourse('')
-        fetchData()
+        fetchData() // Refresh the list
       } else {
         const data = await res.json()
         setMessage({ type: 'error', text: data.error || 'Failed to assign course' })
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'Failed to assign course' })
+    }
+  }
+
+  const handleRemove = async (courseId: string, teacherId: string) => {
+    const token = localStorage.getItem('token')
+    try {
+      const res = await fetch(`/api/admin/courses/assign?courseId=${courseId}&teacherId=${teacherId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      })
+
+      if (res.ok) {
+        setMessage({ type: 'success', text: 'Course assignment removed!' })
+        fetchData()
+      } else {
+        const data = await res.json()
+        setMessage({ type: 'error', text: data.error || 'Failed to remove assignment' })
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Failed to remove assignment' })
     }
   }
 
@@ -110,86 +139,86 @@ export default function AssignCoursePage() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 max-w-md">
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Select Teacher</label>
-            <select
-              value={selectedTeacher}
-              onChange={(e) => setSelectedTeacher(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Choose a teacher...</option>
-              {teachers.map((teacher) => (
-                <option key={teacher.id} value={teacher.id}>
-                  {teacher.name} ({teacher.email})
-                </option>
-              ))}
-            </select>
-          </div>
+      <div className="grid md:grid-cols-2 gap-8">
+        {/* Assignment Form */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">New Assignment</h2>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Select Teacher</label>
+              <select
+                value={selectedTeacher}
+                onChange={(e) => setSelectedTeacher(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Choose a teacher...</option>
+                {teachers.map((teacher) => (
+                  <option key={teacher.id} value={teacher.id}>
+                    {teacher.name} ({teacher.email})
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Select Course</label>
-            <select
-              value={selectedCourse}
-              onChange={(e) => setSelectedCourse(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Choose a course...</option>
-              {courses.map((course) => (
-                <option key={course.id} value={course.id}>
-                  {course.title} ({course.shortName})
-                </option>
-              ))}
-            </select>
-          </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Select Course</label>
+              <select
+                value={selectedCourse}
+                onChange={(e) => setSelectedCourse(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Choose a course...</option>
+                {courses.map((course) => (
+                  <option key={course.id} value={course.id}>
+                    {course.title} ({course.shortName})
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <button
-            onClick={handleAssign}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Assign Course
-          </button>
+            <button
+              onClick={handleAssign}
+              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Assign Course
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Current Assignments */}
-      <div className="mt-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Current Course Assignments</h2>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="text-left py-3 px-6 text-sm font-medium text-gray-500">Teacher</th>
-                <th className="text-left py-3 px-6 text-sm font-medium text-gray-500">Course</th>
-                <th className="text-left py-3 px-6 text-sm font-medium text-gray-500">Status</th>
-                <th className="text-left py-3 px-6 text-sm font-medium text-gray-500">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {courses.map((course) => (
-                course.currentTeachers.map((teacher) => {
-                  const teacherInfo = teachers.find(t => t.id === teacher.id)
-                  return (
-                    <tr key={`${course.id}-${teacher.id}`} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3 px-6 font-medium text-gray-900">{teacherInfo?.name}</td>
-                      <td className="py-3 px-6 text-gray-600">{course.title}</td>
-                      <td className="py-3 px-6">
-                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                          Active
-                        </span>
-                       </td>
-                      <td className="py-3 px-6">
-                        <button className="text-red-600 hover:text-red-700">
-                          Remove
-                        </button>
-                      </td>
-                    </tr>
-                  )
-                })
-              ))}
-            </tbody>
-          </table>
+        {/* Current Assignments */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Current Assignments</h2>
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {courses.map((course) => (
+              course.currentTeachers.map((teacher) => {
+                const teacherInfo = teacherMap.get(teacher.id)
+                if (!teacherInfo) return null
+                return (
+                  <div key={`${course.id}-${teacher.id}`} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <BookOpen size={16} className="text-blue-500" />
+                        <span className="font-medium text-gray-900">{course.title}</span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <User size={14} className="text-gray-400" />
+                        <span className="text-sm text-gray-600">{teacherInfo.name}</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleRemove(course.id, teacher.id)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                )
+              })
+            ))}
+            {courses.every(c => c.currentTeachers.length === 0) && (
+              <p className="text-gray-500 text-center py-8">No assignments yet</p>
+            )}
+          </div>
         </div>
       </div>
     </div>
