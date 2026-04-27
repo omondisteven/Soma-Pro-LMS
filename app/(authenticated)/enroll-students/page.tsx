@@ -20,15 +20,12 @@ export default function EnrollStudentsPage() {
 const fetchApplications = async () => {
   const token = localStorage.getItem('token')
   try {
-    const res = await fetch('/api/applications/pending', {
+    const res = await fetch('/api/admin/enroll', {
       headers: { Authorization: `Bearer ${token}` }
     })
     const data = await res.json()
     // Only show applications that have at least partial payment
-    const paidApplications = data.applications?.filter(
-      (app: any) => app.totalPaid > 0 || app.status === 'PAID'
-    )
-    setApplications(paidApplications || [])
+    setApplications(data.applications || [])
   } catch (error) {
     console.error('Error fetching applications:', error)
   } finally {
