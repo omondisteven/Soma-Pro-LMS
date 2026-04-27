@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
   const user = await getUserFromToken(token)
   
   const userRole = user?.role as string
-  if (!user || (userRole !== 'ADMIN' && userRole !== 'MANAGER')) {
+  if (!user || !['ADMIN', 'MANAGER', 'TEACHER'].includes(userRole)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   
@@ -117,17 +117,30 @@ export async function POST(request: NextRequest) {
 // ================= GET =================
 export async function GET(request: NextRequest) {
   const token = request.headers.get('authorization')?.replace('Bearer ', '')
-  const user = await getUserFromToken(token)
-  
+  const user = await getUserFromToken(token)  
   const userRole = user?.role as string
-  if (!user || (userRole !== 'ADMIN' && userRole !== 'MANAGER')) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
   
+  if (!user || !['ADMIN', 'MANAGER', 'TEACHER'].includes(userRole)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }  
+
+    let courseFilter = {}
+
+    if (user.role === 'TEACHER') {
+      courseFilter = {
+        course: {
+          OR: [
+            { ownerId: user.id },
+            { instructors: { some: { instructorId: user.id } } }
+          ]
+        }
+      }
+    }  
   try {
     // Step 1: Fetch applications (WITHOUT payments)
     const applications = await prisma.application.findMany({
       where: {
+        ...courseFilter,
         OR: [
           { totalPaid: { gt: 0 } },
           { status: 'PAID' }
