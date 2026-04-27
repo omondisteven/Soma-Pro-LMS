@@ -1,3 +1,4 @@
+// app\api\payments\cash\record\route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getUserFromToken } from '@/lib/auth'
@@ -67,7 +68,7 @@ export async function POST(request: NextRequest) {
         courseId,
         amount,
         paidAmount: amount,
-        method: 'CASH',
+        method: 'MPESA', // Change to 'CASH' after migration
         status: 'COMPLETED',
         transactionId: receiptNumber,
         metadata: {
