@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getUserFromToken } from '@/lib/auth'
+import { PaymentMethod, PaymentStatus } from '@prisma/client'
 
 export async function POST(req: NextRequest) {
   const token = req.headers.get('authorization')?.replace('Bearer ', '')
@@ -27,8 +28,10 @@ export async function POST(req: NextRequest) {
         courseId,
         amount,
         paidAmount: amount,
-        method: 'CASH',
-        status: 'PENDING',
+        // method: 'CASH',
+        method: PaymentMethod.CASH,
+        // status: 'PENDING',
+        status: PaymentStatus.PENDING,
         transactionId: reference
       }
     })
