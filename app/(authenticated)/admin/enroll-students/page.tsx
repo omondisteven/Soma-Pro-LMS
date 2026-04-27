@@ -6,6 +6,17 @@ import { Eye, CheckCircle, XCircle, Clock, X } from 'lucide-react'
 import StudentProfileModal from '@/components/StudentProfileModal'
 import { Application } from '@/types/application'
 
+import { Prisma } from '@prisma/client'
+
+export type ApplicationWithRelations =
+  Prisma.ApplicationGetPayload<{
+    include: {
+      student: true
+      course: true
+      payments: true
+    }
+  }>
+
 
 // // interface Payment {
 // //   id: string
