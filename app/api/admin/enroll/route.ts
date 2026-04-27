@@ -1,8 +1,9 @@
-// app\api\admin\enroll\route.ts
+// app/api/admin/enroll/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getUserFromToken } from '@/lib/auth'
 
+// ================= POST =================
 export async function POST(request: NextRequest) {
   const token = request.headers.get('authorization')?.replace('Bearer ', '')
   const user = await getUserFromToken(token)
@@ -16,7 +17,10 @@ export async function POST(request: NextRequest) {
     const { studentId, courseId } = await request.json()
     
     if (!studentId || !courseId) {
-      return NextResponse.json({ error: 'Student ID and Course ID are required' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Student ID and Course ID are required' },
+        { status: 400 }
+      )
     }
     
     // Check if student exists
@@ -37,7 +41,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 })
     }
     
-    // Check if there's an application with payment
+    // Check application
     const application = await prisma.application.findUnique({
       where: {
         studentId_courseId: {
@@ -47,13 +51,18 @@ export async function POST(request: NextRequest) {
       }
     })
     
-    // Only allow enrollment if application exists and has payment
     if (!application) {
-      return NextResponse.json({ error: 'Student has not applied for this course' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Student has not applied for this course' },
+        { status: 400 }
+      )
     }
     
     if (application.totalPaid === 0 && application.status !== 'PAID') {
-      return NextResponse.json({ error: 'Student has not completed payment for this course' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Student has not completed payment for this course' },
+        { status: 400 }
+      )
     }
     
     // Check if already enrolled
@@ -67,7 +76,10 @@ export async function POST(request: NextRequest) {
     })
     
     if (existingEnrollment) {
-      return NextResponse.json({ error: 'Student is already enrolled in this course' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Student is already enrolled in this course' },
+        { status: 400 }
+      )
     }
     
     // Create enrollment
@@ -79,7 +91,7 @@ export async function POST(request: NextRequest) {
       }
     })
     
-    // Update application status to APPROVED
+    // Update application status
     await prisma.application.update({
       where: {
         studentId_courseId: {
@@ -102,7 +114,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET - Get students with pending applications
+// ================= GET =================
 export async function GET(request: NextRequest) {
   const token = request.headers.get('authorization')?.replace('Bearer ', '')
   const user = await getUserFromToken(token)
@@ -113,7 +125,6 @@ export async function GET(request: NextRequest) {
   }
   
   try {
-    // Step 1: Fetch applications
     const applications = await prisma.application.findMany({
       where: {
         OR: [
@@ -140,14 +151,11 @@ export async function GET(request: NextRequest) {
             id: true,
             title: true,
             shortName: true,
-            price: true,        // ✅ ADD THIS
-            currency: true      // ✅ ADD THIS
+            price: true,
+            currency: true
           }
         },
-        payments: {            // ✅ ADD THIS
-          where: {
-            status: 'COMPLETED'
-          },
+        payments: {
           select: {
             id: true,
             amount: true,
@@ -156,31 +164,16 @@ export async function GET(request: NextRequest) {
             status: true,
             transactionId: true,
             createdAt: true
+          },
+          orderBy: {
+            createdAt: 'desc'
           }
         }
       },
       orderBy: { appliedAt: 'desc' }
     })
 
-    // Step 2: Attach payments manually
-    const applicationsWithPayments = await Promise.all(
-      applications.map(async (app) => {
-        const payments = await prisma.payment.findMany({
-          where: {
-            studentId: app.student.id,
-            courseId: app.course.id
-          },
-          orderBy: { createdAt: 'desc' }
-        })
-
-        return {
-          ...app,
-          payments
-        }
-      })
-    )
-
-    return NextResponse.json({ applications: applicationsWithPayments })
+    return NextResponse.json({ applications })
   } catch (error) {
     console.error('Error fetching applications:', error)
     return NextResponse.json(

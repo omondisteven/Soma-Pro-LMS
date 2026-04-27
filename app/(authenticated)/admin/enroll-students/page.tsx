@@ -4,49 +4,50 @@
 import { useEffect, useState } from 'react'
 import { Eye, CheckCircle, XCircle, Clock, X } from 'lucide-react'
 import StudentProfileModal from '@/components/StudentProfileModal'
+import { Application } from '@/types/application'
 
 
-// interface Payment {
+// // interface Payment {
+// //   id: string
+// //   amount: number
+// //   paidAmount: number
+// //   method: string
+// //   status: string
+// //   transactionId?: string
+// // }
+
+// interface Application {
 //   id: string
-//   amount: number
-//   paidAmount: number
-//   method: string
+//   appliedAt: string
 //   status: string
-//   transactionId?: string
+//   totalPaid: number
+
+//   student: {
+//     id: string
+//     name: string
+//     email: string
+//     highSchoolCompleted: boolean
+//     qualification: string | null
+//     qualificationDiscipline: string | null
+//   }
+
+//   course: {
+//     id: string
+//     title: string
+//     shortName: string
+//     price: number        // ✅ ADD
+//     currency: string     // ✅ ADD
+//   }
+
+//   payments: {           // ✅ ADD
+//     id: string
+//     amount: number
+//     paidAmount: number
+//     method: string
+//     status: string
+//     transactionId?: string | null
+//   }[]
 // }
-
-interface Application {
-  id: string
-  appliedAt: string
-  status: string
-  totalPaid: number
-
-  student: {
-    id: string
-    name: string
-    email: string
-    highSchoolCompleted: boolean
-    qualification: string | null
-    qualificationDiscipline: string | null
-  }
-
-  course: {
-    id: string
-    title: string
-    shortName: string
-    price: number        // ✅ ADD
-    currency: string     // ✅ ADD
-  }
-
-  payments: {           // ✅ ADD
-    id: string
-    amount: number
-    paidAmount: number
-    method: string
-    status: string
-    transactionId?: string | null
-  }[]
-}
 
 export default function AdminEnrollStudentsPage() {
   const [applications, setApplications] = useState<Application[]>([])
