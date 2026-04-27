@@ -125,6 +125,7 @@ export async function GET(request: NextRequest) {
   }
   
   try {
+    // Step 1: Fetch applications (WITHOUT payments)
     const applications = await prisma.application.findMany({
       where: {
         OR: [
@@ -154,26 +155,32 @@ export async function GET(request: NextRequest) {
             price: true,
             currency: true
           }
-        },
-        payments: {
-          select: {
-            id: true,
-            amount: true,
-            paidAmount: true,
-            method: true,
-            status: true,
-            transactionId: true,
-            createdAt: true
-          },
-          orderBy: {
-            createdAt: 'desc'
-          }
         }
       },
       orderBy: { appliedAt: 'desc' }
     })
 
-    return NextResponse.json({ applications })
+    // Step 2: Attach payments manually
+    const applicationsWithPayments = await Promise.all(
+      applications.map(async (app) => {
+        const payments = await prisma.payment.findMany({
+          where: {
+            studentId: app.studentId,
+            courseId: app.courseId,
+            status: 'COMPLETED'
+          },
+          orderBy: { createdAt: 'desc' }
+        })
+
+        return {
+          ...app,
+          payments
+        }
+      })
+    )
+
+    return NextResponse.json({ applications: applicationsWithPayments })
+    
   } catch (error) {
     console.error('Error fetching applications:', error)
     return NextResponse.json(
