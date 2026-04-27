@@ -14,7 +14,24 @@ export async function GET(request: NextRequest) {
   try {
     let courses
     
-    if (user.role === 'TEACHER') {
+    if (user.role === 'ADMIN') {
+      // Admin sees all courses
+      courses = await prisma.course.findMany({
+        include: {
+          owner: true,
+          instructors: {
+            include: {
+              instructor: true
+            }
+          },
+          enrollments: true,
+          _count: {
+            select: { enrollments: true, sections: true }
+          }
+        },
+        orderBy: { createdAt: 'desc' }
+      })
+    } else if (user.role === 'TEACHER') {
       // Teacher sees courses they own OR are instructors of
       courses = await prisma.course.findMany({
         where: {
@@ -38,7 +55,7 @@ export async function GET(request: NextRequest) {
         orderBy: { createdAt: 'desc' }
       })
     } else {
-      // Student sees courses they're enrolled in
+      // Student sees enrolled courses
       courses = await prisma.course.findMany({
         where: {
           enrollments: {
@@ -75,7 +92,7 @@ export async function POST(request: NextRequest) {
   const token = request.headers.get('authorization')?.replace('Bearer ', '')
   const user = await getUserFromToken(token)
   
-  if (!user || user.role !== 'TEACHER') {
+  if (!user || (user.role !== 'TEACHER' && user.role !== 'ADMIN')) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   
