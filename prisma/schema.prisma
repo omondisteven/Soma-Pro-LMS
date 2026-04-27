@@ -332,6 +332,7 @@ enum PaymentMethod {
   MPESA
   PAYPAL
   CARD
+  CASH
 }
 
 enum LessonType {
