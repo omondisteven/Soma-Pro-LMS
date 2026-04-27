@@ -3,48 +3,49 @@
 
 import { useState } from 'react'
 import { X, GraduationCap, CheckCircle, XCircle } from 'lucide-react'
+import { Application } from '@/types/application'
 
-interface Payment {
-  id: string
-  amount: number
-  paidAmount: number
-  method: string
-  status: string
-  transactionId?: string
-}
+// interface Payment {
+//   id: string
+//   amount: number
+//   paidAmount: number
+//   method: string
+//   status: string
+//   transactionId?: string
+// }
 
-interface Application {
-  id: string
-  appliedAt: string
-  status: string
-  totalPaid: number
-  // payments?: Payment[] // ✅ ADD THIS
+// interface Application {
+//   id: string
+//   appliedAt: string
+//   status: string
+//   totalPaid: number
+//   // payments?: Payment[] // ✅ ADD THIS
 
-  student: {
-    id: string
-    name: string
-    email: string
-    highSchoolCompleted: boolean
-    qualification: string | null
-    qualificationDiscipline: string | null
-  }
+//   student: {
+//     id: string
+//     name: string
+//     email: string
+//     highSchoolCompleted: boolean
+//     qualification: string | null
+//     qualificationDiscipline: string | null
+//   }
 
-  course: {
-    id: string
-    title: string
-    shortName: string
-    price: number        // ✅ ADD
-    currency: string     // ✅ ADD
-  }
-  payments: {         // ✅ ADD
-    id: string
-    amount: number
-    paidAmount: number
-    method: string
-    status: string
-    transactionId?: string | null
-  }[]
-}
+//   course: {
+//     id: string
+//     title: string
+//     shortName: string
+//     price: number        // ✅ ADD
+//     currency: string     // ✅ ADD
+//   }
+//   payments: {         // ✅ ADD
+//     id: string
+//     amount: number
+//     paidAmount: number
+//     method: string
+//     status: string
+//     transactionId?: string | null
+//   }[]
+// }
 
 interface StudentProfileModalProps {
   application: Application
