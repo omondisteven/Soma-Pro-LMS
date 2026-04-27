@@ -331,12 +331,45 @@ export default function CheckoutPage() {
       await handlePayPalPayment()
 
     } else if (selectedMethod === 'CASH') {
-      if (!cashReference.trim()) {
-        setCashError('Receipt/reference number is required')
+      if (!cashReference) {
+        setError('Please enter receipt/reference number')
         return
       }
 
-      await handleCashPayment()
+      setProcessing(true)
+
+      try {
+        const token = localStorage.getItem('token')
+
+        const res = await fetch('/api/payments/cash', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            courseId,
+            amount: paymentAmount,
+            reference: cashReference
+          })
+        })
+
+        const data = await res.json()
+
+        if (!res.ok) throw new Error(data.error)
+
+        toast.success('Payment submitted for verification')
+        setSuccess(true)
+
+        setTimeout(() => {
+          router.push('/courses')
+        }, 3000)
+
+      } catch (err: any) {
+        setError(err.message || 'Cash payment failed')
+      } finally {
+        setProcessing(false)
+      }
     }
   }
 
@@ -611,8 +644,8 @@ export default function CheckoutPage() {
               </div>
             </label>
 
-            {/* Cash / Bank Payment */}
-            <label className="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+            {/* Cash Payment */}
+            <label className="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
               <input
                 type="radio"
                 name="paymentMethod"
@@ -623,13 +656,11 @@ export default function CheckoutPage() {
               />
               <div className="flex items-center gap-3 flex-1">
                 <div className="w-12 h-8 bg-yellow-100 rounded-lg flex items-center justify-center text-xl">
-                  🧾
+                  💵
                 </div>
                 <div>
                   <p className="font-medium text-gray-900">Cash / Bank Transfer</p>
-                  <p className="text-sm text-gray-500">
-                    Pay via cash, bank deposit, or direct transfer
-                  </p>
+                  <p className="text-sm text-gray-500">Pay via bank or cash deposit</p>
                 </div>
               </div>
             </label>
@@ -680,25 +711,17 @@ export default function CheckoutPage() {
           {selectedMethod === 'CASH' && (
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Receipt / Reference Number *
+                Receipt / Reference Number
               </label>
               <input
                 type="text"
                 value={cashReference}
-                onChange={(e) => {
-                  setCashReference(e.target.value)
-                  if (e.target.value.trim()) setCashError('')
-                }}
-                placeholder="Enter receipt or bank reference number"
-                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  cashError ? 'border-red-500' : 'border-gray-300'
-                }`}
+                onChange={(e) => setCashReference(e.target.value)}
+                placeholder="Enter receipt or bank reference"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              {cashError && (
-                <p className="text-xs text-red-500 mt-1">{cashError}</p>
-              )}
               <p className="text-xs text-gray-500 mt-1">
-                This will be verified during application approval
+                Required for verification during approval
               </p>
             </div>
           )}
