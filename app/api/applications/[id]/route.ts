@@ -12,7 +12,7 @@ export async function PUT(
   const token = request.headers.get('authorization')?.replace('Bearer ', '')
   const user = await getUserFromToken(token)
   
-  if (!user || user.role !== 'TEACHER') {
+  if (!user || user.role !== 'TEACHER' && user.role !== 'ADMIN') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   
@@ -121,7 +121,7 @@ export async function GET(
   const token = request.headers.get('authorization')?.replace('Bearer ', '')
   const user = await getUserFromToken(token)
   
-  if (!user || user.role !== 'TEACHER') {
+  if (!user || user.role !== 'ADMIN' && user.role !== 'TEACHER') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   
