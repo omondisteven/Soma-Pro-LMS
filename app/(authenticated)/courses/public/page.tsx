@@ -2,7 +2,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'  // Make sure this import is correct
+import { useRouter } from 'next/navigation'
 import { BookOpen, Users, Calendar } from 'lucide-react'
 
 interface Course {
@@ -26,9 +26,10 @@ interface Application {
 }
 
 export default function PublicCoursesPage() {
-  const router = useRouter()  // Initialize router
+  const router = useRouter()
+
   const [courses, setCourses] = useState<Course[]>([])
-  const [applications, setApplications] = useState<Map<string, any>>(new Map())
+  const [applications, setApplications] = useState<Map<string, Application>>(new Map())
   const [loading, setLoading] = useState(true)
   const [processingCourse, setProcessingCourse] = useState<string | null>(null)
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
@@ -58,11 +59,14 @@ export default function PublicCoursesPage() {
       const res = await fetch('/api/applications', {
         headers: { Authorization: `Bearer ${token}` }
       })
+
       const data = await res.json()
-      const appMap = new Map()
-      data.applications?.forEach((app: any) => {
-        appMap.set(app.courseId, { status: app.status, totalPaid: app.totalPaid })
+
+      const appMap = new Map<string, Application>()
+      data.applications?.forEach((app: Application) => {
+        appMap.set(app.courseId, app)
       })
+
       setApplications(appMap)
     } catch (error) {
       console.error('Error fetching applications:', error)
@@ -75,35 +79,47 @@ export default function PublicCoursesPage() {
       router.push('/login')
       return
     }
-    
-    // Redirect to checkout page
+
     router.push(`/checkout?course=${courseId}`)
   }
 
+  // ✅ CENTRALIZED BUTTON LOGIC (IMPORTANT)
   const getButtonState = (courseId: string) => {
     const app = applications.get(courseId)
-    if (!app) return { text: 'Enroll Now', disabled: false, variant: 'primary' }
-    
-    if (app.status === 'APPROVED') return { text: 'Enrolled', disabled: true, variant: 'success' }
-    if (app.status === 'PAID' || app.status === 'APPROVED') return { text: 'Enrolled', disabled: true, variant: 'success' }
-    if (app.status === 'PENDING' || app.status === 'PARTIAL_PAID') {
-      return { text: 'Complete Payment', disabled: false, variant: 'warning' }
+
+    if (!app) {
+      return { text: 'Enroll Now', disabled: false, variant: 'primary' }
     }
-    if (app.status === 'DECLINED') return { text: 'Apply Again', disabled: false, variant: 'primary' }
-    
-    return { text: 'Enroll Now', disabled: false, variant: 'primary' }
+
+    switch (app.status) {
+      case 'APPROVED':
+        return { text: 'Enrolled', disabled: true, variant: 'success' }
+
+      case 'PAID':
+        return { text: 'Awaiting Approval', disabled: true, variant: 'success' }
+
+      case 'PENDING':
+      case 'PARTIAL_PAID':
+        return { text: 'Complete Payment', disabled: false, variant: 'warning' }
+
+      case 'DECLINED':
+        return { text: 'Apply Again', disabled: false, variant: 'primary' }
+
+      default:
+        return { text: 'Enroll Now', disabled: false, variant: 'primary' }
+    }
   }
 
   const formatPrice = (price: number, currency: string) => {
     if (price === 0) return 'FREE'
-    
-    const symbols: { [key: string]: string } = {
+
+    const symbols: Record<string, string> = {
       KES: 'KSh',
       USD: '$',
       EUR: '€',
       GBP: '£'
     }
-    
+
     const symbol = symbols[currency] || currency
     return `${symbol} ${price.toLocaleString()}`
   }
@@ -118,7 +134,6 @@ export default function PublicCoursesPage() {
 
   return (
     <div>
-      {/* Notification */}
       {notification && (
         <div className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-lg shadow-lg ${
           notification.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
@@ -147,8 +162,14 @@ export default function PublicCoursesPage() {
             const buttonState = getButtonState(course.id)
             const isProcessing = processingCourse === course.id
             const app = applications.get(course.id)
-            const remainingAmount = app?.totalPaid ? course.price - app.totalPaid : course.price
-            
+
+            const remainingAmount =
+              app?.totalPaid && course.price > 0
+                ? course.price - app.totalPaid
+                : course.price
+
+            const paid = app?.totalPaid ?? 0
+
             return (
               <div key={course.id} className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition-shadow">
                 <div className="p-6">
@@ -160,39 +181,48 @@ export default function PublicCoursesPage() {
                           {course.shortName}
                         </span>
                       </div>
-                      
+
                       <p className="text-gray-600 mb-4">{course.description}</p>
-                      
+
                       <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-2">
                         <div className="flex items-center gap-1">
                           <Users size={16} />
-                          <span>Instructors: {course.instructors.map(i => i.instructor.name).join(', ') || course.owner.name}</span>
+                          <span>
+                            Instructors:{' '}
+                            {course.instructors.map(i => i.instructor.name).join(', ') || course.owner.name}
+                          </span>
                         </div>
+
                         <div className="flex items-center gap-1">
                           <span className="text-gray-400">|</span>
                           <span>Category: {course.category}</span>
                         </div>
+
                         <div className="flex items-center gap-1">
                           <Calendar size={14} />
-                          <span>Starts: {new Date(course.startDate).toLocaleDateString()}</span>
+                          <span>
+                            Starts: {new Date(course.startDate).toLocaleDateString()}
+                          </span>
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="ml-6 text-right">
-                      {/* Price Display */}
+                      {/* Price */}
                       <div className="mb-3">
                         {course.price > 0 ? (
                           <>
                             <div className="text-2xl font-bold text-blue-600">
                               {formatPrice(course.price, course.currency)}
                             </div>
-                            {app?.totalPaid > 0 && app.totalPaid < course.price && (
+
+                            {paid > 0 && paid < course.price && (
                               <div className="text-sm text-orange-600 mt-1">
                                 Remaining: {formatPrice(remainingAmount, course.currency)}
                               </div>
                             )}
-                            {app?.totalPaid > 0 && app.totalPaid >= course.price && (
+
+                            {paid >= course.price && (
                               <div className="text-sm text-green-600 mt-1">
                                 Fully Paid
                               </div>
@@ -204,7 +234,7 @@ export default function PublicCoursesPage() {
                           </div>
                         )}
                       </div>
-                      
+
                       <button
                         onClick={() => {
                           if (!buttonState.disabled) {
@@ -214,7 +244,7 @@ export default function PublicCoursesPage() {
                         disabled={buttonState.disabled || isProcessing}
                         className={`px-6 py-2 rounded-lg font-medium transition-colors w-full ${
                           buttonState.variant === 'success'
-                            ? 'bg-green-100 text-green-700 cursor-default'
+                            ? 'bg-green-100 text-green-700'
                             : buttonState.variant === 'warning'
                             ? 'bg-orange-500 text-white hover:bg-orange-600'
                             : 'bg-blue-600 text-white hover:bg-blue-700'
@@ -222,7 +252,7 @@ export default function PublicCoursesPage() {
                       >
                         {isProcessing ? 'Processing...' : buttonState.text}
                       </button>
-                      
+
                       {app?.status === 'PARTIAL_PAID' && (
                         <p className="text-xs text-gray-500 mt-2">
                           Partial payment received. Complete payment to enroll.

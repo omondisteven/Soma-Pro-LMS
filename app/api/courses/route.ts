@@ -1,3 +1,4 @@
+// app\api\courses\route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getUserFromToken } from '@/lib/auth'
@@ -31,37 +32,30 @@ export async function GET(request: NextRequest) {
         },
         orderBy: { createdAt: 'desc' }
       })
-    } else if (user.role === 'TEACHER') {
-      // Teacher sees courses they own OR are instructors of
-      courses = await prisma.course.findMany({
-        where: {
-          OR: [
-            { ownerId: user.id },
-            { instructors: { some: { instructorId: user.id } } }
-          ]
-        },
-        include: {
-          owner: true,
-          instructors: {
+        } else if (user.role === 'TEACHER') {
+          // Teacher sees courses they own OR are instructors of
+          courses = await prisma.course.findMany({
+            where: {
+              OR: [
+                { ownerId: user.id },
+                { instructors: { some: { instructorId: user.id } } }
+              ]
+            },
             include: {
-              instructor: true
-            }
-          },
-          enrollments: true,
-          _count: {
-            select: { enrollments: true, sections: true }
-          }
-        },
-        orderBy: { createdAt: 'desc' }
-      })
-    } else {
-      // Student sees enrolled courses
-      courses = await prisma.course.findMany({
-        where: {
-          enrollments: {
-            some: { studentId: user.id }
-          }
-        },
+              owner: true,
+              instructors: {
+                include: {
+                  instructor: true
+                }
+              },
+              enrollments: true,
+              _count: {
+                select: { enrollments: true, sections: true }
+              }
+            },
+            orderBy: { createdAt: 'desc' }
+          })
+        courses = await prisma.course.findMany({
         include: {
           owner: true,
           instructors: {
