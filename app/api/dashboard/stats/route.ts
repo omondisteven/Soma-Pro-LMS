@@ -187,9 +187,8 @@ export async function GET(request: NextRequest) {
         select: { totalPaid: true }
       })
 
-      const totalRevenue = paidApplications.reduce(
-        (sum, app) => sum + (app.totalPaid || 0),
-        0
+      const totalRevenue = Math.round(
+        paidApplications.reduce((sum, app) => sum + (app.totalPaid || 0), 0)
       )
 
       // Recent courses (latest created)
