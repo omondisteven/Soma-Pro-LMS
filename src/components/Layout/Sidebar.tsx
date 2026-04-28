@@ -1,4 +1,3 @@
-// src\components\Layout\Sidebar.tsx
 // src/components/Layout/Sidebar.tsx
 'use client'
 
@@ -50,10 +49,23 @@ export default function Sidebar({ userRole }: SidebarProps) {
     return pathname === href || pathname?.startsWith(href + '/')
   }
 
+  // Check if any subitem in a section is active
+  const isSectionActive = (sectionPaths: string[]) => {
+    return sectionPaths.some(path => pathname?.startsWith(path))
+  }
+
   const menuItemClass = (isActive: boolean) => `
     flex items-center gap-2.5 px-3 py-2 mx-2 rounded-lg transition-all text-sm
     ${isActive 
-      ? 'bg-blue-600 text-white shadow-md' 
+      ? 'bg-blue-500/20 text-blue-300 border-l-2 border-blue-400' 
+      : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+    }
+  `
+
+  const subMenuItemClass = (isActive: boolean) => `
+    flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-sm
+    ${isActive 
+      ? 'bg-blue-500/15 text-blue-300 border-l-2 border-blue-400' 
       : 'text-gray-300 hover:bg-gray-700 hover:text-white'
     }
   `
@@ -127,7 +139,11 @@ export default function Sidebar({ userRole }: SidebarProps) {
             <div className="mt-1">
               <button
                 onClick={() => handleSectionToggle('teachers')}
-                className="w-full flex items-center justify-between px-3 py-2 mx-2 rounded-lg transition-all text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
+                className={`w-full flex items-center justify-between px-3 py-2 mx-2 rounded-lg transition-all text-sm ${
+                  isSectionActive(['/admin/teachers', '/admin/assign-course'])
+                    ? 'bg-blue-500/20 text-blue-300'
+                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                }`}
               >
                 <div className="flex items-center gap-2.5">
                   <Users size={18} />
@@ -141,22 +157,14 @@ export default function Sidebar({ userRole }: SidebarProps) {
                   <Link
                     href="/admin/teachers"
                     onClick={handleLinkClick}
-                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-sm ${
-                      pathname === '/admin/teachers'
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                    }`}
+                    className={subMenuItemClass(pathname === '/admin/teachers')}
                   >
                     <span className="font-normal">Manage Teachers</span>
                   </Link>
                   <Link
                     href="/admin/assign-course"
                     onClick={handleLinkClick}
-                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-sm ${
-                      pathname === '/admin/assign-course'
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                    }`}
+                    className={subMenuItemClass(pathname === '/admin/assign-course')}
                   >
                     <span className="font-normal">Assign Courses</span>
                   </Link>
@@ -168,7 +176,11 @@ export default function Sidebar({ userRole }: SidebarProps) {
             <div className="mt-1">
               <button
                 onClick={() => handleSectionToggle('students')}
-                className="w-full flex items-center justify-between px-3 py-2 mx-2 rounded-lg transition-all text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
+                className={`w-full flex items-center justify-between px-3 py-2 mx-2 rounded-lg transition-all text-sm ${
+                  isSectionActive(['/admin/students', '/admin/enroll-students'])
+                    ? 'bg-blue-500/20 text-blue-300'
+                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                }`}
               >
                 <div className="flex items-center gap-2.5">
                   <GraduationCap size={18} />
@@ -182,22 +194,14 @@ export default function Sidebar({ userRole }: SidebarProps) {
                   <Link
                     href="/admin/students"
                     onClick={handleLinkClick}
-                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-sm ${
-                      pathname === '/admin/students'
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                    }`}
+                    className={subMenuItemClass(pathname === '/admin/students')}
                   >
                     <span className="font-normal">Manage Students</span>
                   </Link>
                   <Link
                     href="/admin/enroll-students"
                     onClick={handleLinkClick}
-                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-sm ${
-                      pathname === '/admin/enroll-students'
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                    }`}
+                    className={subMenuItemClass(pathname === '/admin/enroll-students')}
                   >
                     <span className="font-normal">Enroll Students</span>
                   </Link>
@@ -224,7 +228,11 @@ export default function Sidebar({ userRole }: SidebarProps) {
           <div className="mt-1">
             <button
               onClick={() => handleSectionToggle('courses')}
-              className="w-full flex items-center justify-between px-3 py-2 mx-2 rounded-lg transition-all text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
+              className={`w-full flex items-center justify-between px-3 py-2 mx-2 rounded-lg transition-all text-sm ${
+                isSectionActive(['/courses', '/courses/public', '/enroll-students'])
+                  ? 'bg-blue-500/20 text-blue-300'
+                  : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+              }`}
             >
               <div className="flex items-center gap-2.5">
                 <BookOpen size={18} />
@@ -238,11 +246,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
                 <Link
                   href="/courses"
                   onClick={handleLinkClick}
-                  className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-sm ${
-                    pathname === '/courses'
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                  }`}
+                  className={subMenuItemClass(pathname === '/courses')}
                 >
                   <span className="font-normal">My Courses</span>
                 </Link>
@@ -251,11 +255,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
                   <Link
                     href="/courses/public"
                     onClick={handleLinkClick}
-                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-sm ${
-                      pathname === '/courses/public'
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                    }`}
+                    className={subMenuItemClass(pathname === '/courses/public')}
                   >
                     <span className="font-normal">Browse Courses</span>
                   </Link>
@@ -265,11 +265,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
                   <Link
                     href="/enroll-students"
                     onClick={handleLinkClick}
-                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-sm ${
-                      pathname === '/enroll-students'
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                    }`}
+                    className={subMenuItemClass(pathname === '/enroll-students')}
                   >
                     <span className="font-normal">Enroll Students</span>
                   </Link>
@@ -284,7 +280,20 @@ export default function Sidebar({ userRole }: SidebarProps) {
           <div className="mt-2">
             <button
               onClick={() => handleSectionToggle('reports')}
-              className="w-full flex items-center justify-between px-3 py-2 mx-2 rounded-lg transition-all text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
+              className={`w-full flex items-center justify-between px-3 py-2 mx-2 rounded-lg transition-all text-sm ${
+                isSectionActive([
+                  '/reports/course-analytics',
+                  '/reports/student-performance',
+                  '/reports/assignment-analysis',
+                  '/reports/grade-distribution',
+                  '/admin/finance',
+                  '/reports/progress',
+                  '/reports/grades',
+                  '/reports/assignments'
+                ])
+                  ? 'bg-blue-500/20 text-blue-300'
+                  : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+              }`}
             >
               <div className="flex items-center gap-2.5">
                 <BarChart3 size={18} />
@@ -298,19 +307,19 @@ export default function Sidebar({ userRole }: SidebarProps) {
                 {/* Teacher Reports - For Admin and Teachers */}
                 {(isAdmin || isTeacher) && (
                   <>
-                    <Link href="/reports/course-analytics" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <Link href="/reports/course-analytics" onClick={handleLinkClick} className={subMenuItemClass(pathname === '/reports/course-analytics')}>
                       <TrendingUp size={16} />
                       <span className="font-normal">Course Analytics</span>
                     </Link>
-                    <Link href="/reports/student-performance" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <Link href="/reports/student-performance" onClick={handleLinkClick} className={subMenuItemClass(pathname === '/reports/student-performance')}>
                       <UserCheck size={16} />
                       <span className="font-normal">Student Performance</span>
                     </Link>
-                    <Link href="/reports/assignment-analysis" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <Link href="/reports/assignment-analysis" onClick={handleLinkClick} className={subMenuItemClass(pathname === '/reports/assignment-analysis')}>
                       <FileText size={16} />
                       <span className="font-normal">Assignment Analysis</span>
                     </Link>                                   
-                    <Link href="/reports/grade-distribution" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <Link href="/reports/grade-distribution" onClick={handleLinkClick} className={subMenuItemClass(pathname === '/reports/grade-distribution')}>
                       <PieChart size={16} />
                       <span className="font-normal">Grade Distribution</span>
                     </Link>
@@ -322,7 +331,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
                         <Link
                           href="/admin/finance"
                           onClick={handleLinkClick}
-                          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
+                          className={subMenuItemClass(pathname === '/admin/finance')}
                         >
                           <DollarSign size={16} />
                           <span>Financial Reports</span>
@@ -337,15 +346,15 @@ export default function Sidebar({ userRole }: SidebarProps) {
                     {(isAdmin && isTeacher) && (
                       <div className="border-t border-gray-700 my-1"></div>
                     )}
-                    <Link href="/reports/progress" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <Link href="/reports/progress" onClick={handleLinkClick} className={subMenuItemClass(pathname === '/reports/progress')}>
                       <TrendingUp size={16} />
                       <span className="font-normal">Progress Report</span>
                     </Link>
-                    <Link href="/reports/grades" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <Link href="/reports/grades" onClick={handleLinkClick} className={subMenuItemClass(pathname === '/reports/grades')}>
                       <Award size={16} />
                       <span className="font-normal">Grade Report</span>
                     </Link>
-                    <Link href="/reports/assignments" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                    <Link href="/reports/assignments" onClick={handleLinkClick} className={subMenuItemClass(pathname === '/reports/assignments')}>
                       <FileText size={16} />
                       <span className="font-normal">Assignment Report</span>
                     </Link>
