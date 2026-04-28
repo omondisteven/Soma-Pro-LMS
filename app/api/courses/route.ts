@@ -1,29 +1,26 @@
-// app\api\courses\route.ts
+// app/api/courses/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getUserFromToken } from '@/lib/auth'
 
-// GET - List courses
 export async function GET(request: NextRequest) {
   const token = request.headers.get('authorization')?.replace('Bearer ', '')
   const user = await getUserFromToken(token)
-  
+
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
-  
+
   try {
-    let courses
-    
+    let courses: any[] = []
+
+    // ================= ADMIN =================
     if (user.role === 'ADMIN') {
-      // Admin sees all courses
       courses = await prisma.course.findMany({
         include: {
           owner: true,
           instructors: {
-            include: {
-              instructor: true
-            }
+            include: { instructor: true }
           },
           enrollments: true,
           _count: {
@@ -32,133 +29,86 @@ export async function GET(request: NextRequest) {
         },
         orderBy: { createdAt: 'desc' }
       })
-        } else if (user.role === 'TEACHER') {
-          // Teacher sees courses they own OR are instructors of
-          courses = await prisma.course.findMany({
-            where: {
-              OR: [
-                { ownerId: user.id },
-                { instructors: { some: { instructorId: user.id } } }
-              ]
-            },
-            include: {
-              owner: true,
-              instructors: {
-                include: {
-                  instructor: true
-                }
-              },
-              enrollments: true,
-              _count: {
-                select: { enrollments: true, sections: true }
-              }
-            },
-            orderBy: { createdAt: 'desc' }
-          })
-        courses = await prisma.course.findMany({
+    }
+
+    // ================= TEACHER =================
+    else if (user.role === 'TEACHER') {
+      courses = await prisma.course.findMany({
+        where: {
+          OR: [
+            { ownerId: user.id },
+            { instructors: { some: { instructorId: user.id } } }
+          ]
+        },
         include: {
           owner: true,
           instructors: {
-            include: {
-              instructor: true
-            }
+            include: { instructor: true }
           },
+          enrollments: true,
           _count: {
-            select: { sections: true }
+            select: { enrollments: true, sections: true }
           }
         },
         orderBy: { createdAt: 'desc' }
       })
     }
-    
+
+    // ================= STUDENT (MY COURSES) =================
+    else {
+      const results = await prisma.course.findMany({
+        where: {
+          OR: [
+            {
+              enrollments: {
+                some: { studentId: user.id }
+              }
+            },
+            {
+              applications: {
+                some: { studentId: user.id }
+              }
+            }
+          ]
+        },
+        include: {
+          owner: true,
+          instructors: {
+            include: { instructor: true }
+          },
+          applications: {
+            where: { studentId: user.id },
+            select: {
+              status: true,
+              totalPaid: true
+            }
+          },
+          _count: {
+            select: { sections: true, enrollments: true }
+          }
+        },
+        orderBy: { createdAt: 'desc' }
+      })
+
+      // Flatten application data
+      courses = results.map(course => {
+        const app = course.applications?.[0]
+
+        return {
+          ...course,
+          applicationStatus: app?.status || null,
+          totalPaid: app?.totalPaid ?? 0,
+          applications: undefined
+        }
+      })
+    }
+
     return NextResponse.json({ courses })
+
   } catch (error) {
     console.error('Error fetching courses:', error)
     return NextResponse.json(
       { error: 'Failed to fetch courses' },
-      { status: 500 }
-    )
-  }
-}
-
-// POST - Create new course (Teachers only)
-export async function POST(request: NextRequest) {
-  const token = request.headers.get('authorization')?.replace('Bearer ', '')
-  const user = await getUserFromToken(token)
-  
-  if (!user || (user.role !== 'TEACHER' && user.role !== 'ADMIN')) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-  
-  try {
-    const body = await request.json()
-    const { 
-      title, 
-      shortName, 
-      description, 
-      category, 
-      visibility, 
-      status, 
-      price,
-      currency,
-      startDate, 
-      endDate,
-      imageUrl,
-      instructorIds 
-    } = body
-    
-    // Validate required fields
-    if (!title || !shortName || !description || !category || !startDate) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      )
-    }
-    
-    // Create course with instructors
-    const course = await prisma.course.create({
-      data: {
-        title,
-        shortName,
-        description,
-        category,
-        visibility: visibility || 'SHOW',
-        startDate: new Date(startDate),
-        endDate: endDate ? new Date(endDate) : null,
-        imageUrl: imageUrl || null,
-        ownerId: user.id,
-        status: status || 'DRAFT', 
-        price: price || 0,
-        currency: currency || 'KES', 
-        instructors: {
-          create: [
-            // Add the owner as an instructor
-            { instructorId: user.id },
-            // Add additional instructors (deduplicate)
-            ...(instructorIds || [])
-              .filter((id: string) => id !== user.id)
-              .map((instructorId: string) => ({ instructorId }))
-          ]
-        }
-      },
-      include: {
-        owner: true,
-        instructors: {
-          include: {
-            instructor: true
-          }
-        },
-        _count: {
-          select: { enrollments: true, sections: true }
-        }
-      }
-    })
-    
-    return NextResponse.json({ course }, { status: 201 })
-  } catch (error) {
-    console.error('Error creating course:', error)
-    return NextResponse.json(
-      { error: 'Failed to create course' },
       { status: 500 }
     )
   }

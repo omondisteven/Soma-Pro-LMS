@@ -163,12 +163,12 @@ export default function PublicCoursesPage() {
             const isProcessing = processingCourse === course.id
             const app = applications.get(course.id)
 
-            const remainingAmount =
-              app?.totalPaid && course.price > 0
-                ? course.price - app.totalPaid
-                : course.price
-
             const paid = app?.totalPaid ?? 0
+
+            const remainingAmount =
+              course.price > 0
+                ? course.price - paid
+                : 0
 
             return (
               <div key={course.id} className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition-shadow">
@@ -257,6 +257,21 @@ export default function PublicCoursesPage() {
                         <p className="text-xs text-gray-500 mt-2">
                           Partial payment received. Complete payment to enroll.
                         </p>
+                      )}
+
+                      {/* Status Badge (from applications Map ONLY) */}
+                      {app?.status && (
+                        <span className={`text-xs px-2 py-1 rounded ${
+                          app.status === 'APPROVED'
+                            ? 'bg-green-100 text-green-700'
+                            : app.status === 'PENDING'
+                            ? 'bg-yellow-100 text-yellow-700'
+                            : app.status === 'DECLINED'
+                            ? 'bg-red-100 text-red-700'
+                            : 'bg-orange-100 text-orange-700'
+                        }`}>
+                          {app.status}
+                        </span>
                       )}
                     </div>
                   </div>

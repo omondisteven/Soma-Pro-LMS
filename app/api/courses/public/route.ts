@@ -1,5 +1,5 @@
-// app\api\courses\public\route.ts
-import { NextRequest, NextResponse } from 'next/server'
+// app/api/courses/public/route.ts
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
 export async function GET() {
@@ -7,7 +7,7 @@ export async function GET() {
     const courses = await prisma.course.findMany({
       where: {
         visibility: 'SHOW',
-        status: 'PUBLISHED'  // Make sure this is enforced
+        status: 'PUBLISHED'
       },
       include: {
         owner: {
@@ -29,7 +29,7 @@ export async function GET() {
       },
       orderBy: { createdAt: 'desc' }
     })
-    
+
     return NextResponse.json({ courses })
   } catch (error) {
     console.error('Error fetching public courses:', error)

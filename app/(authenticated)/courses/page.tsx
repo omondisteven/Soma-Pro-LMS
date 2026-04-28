@@ -33,7 +33,8 @@ interface Course {
   owner?: { name: string }
   instructors?: CourseInstructor[]
   teacher?: { name: string }
-  applicationStatus?: string
+  // ✅ NEW FIELDS (from backend)
+  applicationStatus?: string | null
   totalPaid?: number
   price?: number
   currency?: string
