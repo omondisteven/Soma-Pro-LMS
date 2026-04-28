@@ -203,11 +203,22 @@ export default function DashboardPage() {
   }
 
   if (userRole === 'ADMIN') {
+    // Helper function to format currency
+    const formatCurrency = (amount: number) => {
+      if (!amount) return 'KES 0'
+      return `KES ${Math.round(amount).toLocaleString()}`
+    }
+
     const adminStatsCards = [
       { title: 'Total Courses', value: stats.totalCourses, icon: BookOpen, color: 'bg-blue-500' },
       { title: 'Students', value: stats.totalStudents, icon: Users, color: 'bg-green-500' },
       { title: 'Teachers', value: stats.totalTeachers || 0, icon: Users, color: 'bg-purple-500' },
-      { title: 'Revenue (KES)', value: stats.revenue || 0, icon: TrendingUp, color: 'bg-orange-500' },
+      { 
+        title: 'Revenue (KES)', 
+        value: stats.revenue ? formatCurrency(stats.revenue) : 'KES 0', 
+        icon: TrendingUp, 
+        color: 'bg-orange-500' 
+      },
     ]
 
     return (
@@ -239,10 +250,10 @@ export default function DashboardPage() {
         <div className="bg-white p-6 rounded-xl border">
           <h2 className="text-lg font-semibold mb-4">System Insights</h2>
           <div className="grid grid-cols-2 gap-4">
-            <div>Enrollments: {stats.totalEnrollments}</div>
-            <div>Pending Applications: {stats.pendingAssignments}</div>
-            <div>Avg Grade: {stats.averageGrade}%</div>
-            <div>Graded Submissions: {stats.gradedAssignments}</div>
+            <div>Enrollments: {stats.totalEnrollments?.toLocaleString() || 0}</div>
+            <div>Pending Applications: {stats.pendingAssignments?.toLocaleString() || 0}</div>
+            <div>Avg Grade: {Math.round(stats.averageGrade || 0)}%</div>
+            <div>Graded Submissions: {stats.gradedAssignments?.toLocaleString() || 0}</div>
           </div>
         </div>
       </div>

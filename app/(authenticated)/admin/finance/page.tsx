@@ -62,6 +62,20 @@ export default function FinancePage() {
     fetchFinanceData()
   }, [])
 
+  // Helper function to format currency
+  const formatCurrency = (amount: number) => {
+    if (!amount) return 'KES 0'
+    // Round to nearest whole number and format with commas
+    const roundedAmount = Math.round(amount)
+    return `KES ${roundedAmount.toLocaleString()}`
+  }
+
+  // Helper function to format currency with 2 decimal places
+  const formatCurrencyWithDecimals = (amount: number) => {
+    if (!amount) return 'KES 0.00'
+    return `KES ${amount.toFixed(2).toLocaleString()}`
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -95,7 +109,7 @@ export default function FinancePage() {
             <div>
               <p className="text-green-100 text-sm font-medium">Total Revenue</p>
               <p className="text-3xl font-bold mt-1">
-                KES {data?.totalRevenue?.toLocaleString() || 0}
+                {formatCurrency(data?.totalRevenue || 0)}
               </p>
             </div>
             <div className="bg-white/20 p-3 rounded-lg">
@@ -110,7 +124,7 @@ export default function FinancePage() {
             <div>
               <p className="text-blue-100 text-sm font-medium">Total Transactions</p>
               <p className="text-3xl font-bold mt-1">
-                {data?.payments?.length || 0}
+                {data?.payments?.length?.toLocaleString() || 0}
               </p>
             </div>
             <div className="bg-white/20 p-3 rounded-lg">
@@ -137,7 +151,7 @@ export default function FinancePage() {
                   })}
                 </span>
                 <span className="text-lg font-semibold text-green-600">
-                  KES {month.amount.toLocaleString()}
+                  {formatCurrency(month.amount)}
                 </span>
               </div>
             ))}
@@ -177,7 +191,7 @@ export default function FinancePage() {
                     </td>
                     <td className="p-4">
                       <span className="font-semibold text-green-600">
-                        KES {payment.paidAmount.toLocaleString()}
+                        {formatCurrency(payment.paidAmount)}
                       </span>
                     </td>
                     <td className="p-4">
