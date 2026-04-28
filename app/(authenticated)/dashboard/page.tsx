@@ -1,3 +1,5 @@
+
+// app\(authenticated)\dashboard\page.tsx
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -7,10 +9,13 @@ import { BookOpen, Users, Award, Clock, TrendingUp, CheckCircle, AlertCircle, Lo
 interface DashboardStats {
   totalCourses: number
   totalStudents: number
+  totalTeachers?: number
+  totalEnrollments?: number
   averageGrade: number
   completionRate: number
   pendingAssignments: number
   gradedAssignments: number
+  revenue?: number
 }
 
 interface RecentCourse {
@@ -191,6 +196,53 @@ export default function DashboardPage() {
                 ))}
               </div>
             )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (userRole === 'ADMIN') {
+    const adminStatsCards = [
+      { title: 'Total Courses', value: stats.totalCourses, icon: BookOpen, color: 'bg-blue-500' },
+      { title: 'Students', value: stats.totalStudents, icon: Users, color: 'bg-green-500' },
+      { title: 'Teachers', value: stats.totalTeachers || 0, icon: Users, color: 'bg-purple-500' },
+      { title: 'Revenue (KES)', value: stats.revenue || 0, icon: TrendingUp, color: 'bg-orange-500' },
+    ]
+
+    return (
+      <div>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">
+            Admin Dashboard
+          </h1>
+          <p className="text-gray-600 mt-1">
+            System-wide overview and analytics
+          </p>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {adminStatsCards.map((stat, index) => {
+            const Icon = stat.icon
+            return (
+              <div key={index} className="bg-white p-6 rounded-xl border shadow-sm">
+                <p className="text-sm text-gray-500">{stat.title}</p>
+                <p className="text-2xl font-bold">{stat.value}</p>
+                <Icon className="mt-3 text-gray-400" size={24} />
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Quick Admin Insights */}
+        <div className="bg-white p-6 rounded-xl border">
+          <h2 className="text-lg font-semibold mb-4">System Insights</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <div>Enrollments: {stats.totalEnrollments}</div>
+            <div>Pending Applications: {stats.pendingAssignments}</div>
+            <div>Avg Grade: {stats.averageGrade}%</div>
+            <div>Graded Submissions: {stats.gradedAssignments}</div>
           </div>
         </div>
       </div>

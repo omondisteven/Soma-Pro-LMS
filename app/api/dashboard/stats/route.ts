@@ -1,3 +1,4 @@
+// app\api\dashboard\stats\route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getUserFromToken } from '@/lib/auth'
@@ -133,6 +134,94 @@ export async function GET(request: NextRequest) {
         pendingSubmissions: pendingSubmissionsList.slice(0, 5)
       })
       
+    } else if (user.role === 'ADMIN') {
+      // ===== GLOBAL SYSTEM STATS =====
+
+      const totalCourses = await prisma.course.count()
+
+      const totalStudents = await prisma.user.count({
+        where: { role: 'STUDENT' }
+      })
+
+      const totalTeachers = await prisma.user.count({
+        where: { role: 'TEACHER' }
+      })
+
+      const totalEnrollments = await prisma.enrollment.count()
+
+      // All graded submissions
+      const gradedSubmissions = await prisma.assignmentSubmission.findMany({
+        where: {
+          grade: { not: null }
+        },
+        select: { grade: true }
+      })
+
+      // ✅ Fix TypeScript types
+      const totalGradeSum = gradedSubmissions.reduce(
+        (sum: number, s: { grade: number | null }) => sum + (s.grade ?? 0),
+        0
+      )
+
+      const averageGrade =
+        gradedSubmissions.length > 0
+          ? totalGradeSum / gradedSubmissions.length
+          : 0
+
+      // Pending approvals (applications)
+      const pendingApplications = await prisma.application.count({
+        where: {
+          status: {
+            in: ['PENDING', 'PARTIAL_PAID']
+          }
+        }
+      })
+
+      // Revenue (only paid)
+      const paidApplications = await prisma.application.findMany({
+        where: {
+          status: {
+            in: ['PAID', 'APPROVED']
+          }
+        },
+        select: { totalPaid: true }
+      })
+
+      const totalRevenue = paidApplications.reduce(
+        (sum, app) => sum + (app.totalPaid || 0),
+        0
+      )
+
+      // Recent courses (latest created)
+      const recentCourses = await prisma.course.findMany({
+        take: 3,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          owner: true
+        }
+      })
+
+      return NextResponse.json({
+        stats: {
+          totalCourses,
+          totalStudents,
+          totalTeachers,
+          totalEnrollments,
+          averageGrade: Math.round(averageGrade),
+          completionRate: 0,
+          pendingAssignments: pendingApplications,
+          gradedAssignments: gradedSubmissions.length,
+          revenue: totalRevenue
+        },
+        recentCourses: recentCourses.map(course => ({
+          id: course.id,
+          title: course.title,
+          progress: 0,
+          instructor: course.owner.name,
+          lastActivity: course.createdAt
+        })),
+        pendingSubmissions: [] // optional for admin
+      })
     } else if (user.role === 'TEACHER') {
       // Teacher Dashboard Stats
       const courses = await prisma.course.findMany({
