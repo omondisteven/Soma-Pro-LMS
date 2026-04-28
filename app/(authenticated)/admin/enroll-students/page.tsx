@@ -7,6 +7,7 @@ import StudentProfileModal from '@/components/StudentProfileModal'
 import { Application } from '@/types/application'
 
 import { Prisma } from '@prisma/client'
+import DataTable from '@/components/ui/DataTable'
 
 export type ApplicationWithRelations =
   Prisma.ApplicationGetPayload<{
@@ -150,51 +151,40 @@ export default function AdminEnrollStudentsPage() {
           <p className="text-gray-600">All applications have been processed</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="text-left py-3 px-6 text-sm font-medium text-gray-500">Student Name</th>
-                  <th className="text-left py-3 px-6 text-sm font-medium text-gray-500">Email</th>
-                  <th className="text-left py-3 px-6 text-sm font-medium text-gray-500">Course</th>
-                  <th className="text-left py-3 px-6 text-sm font-medium text-gray-500">Amount Paid</th>
-                  <th className="text-left py-3 px-6 text-sm font-medium text-gray-500">Application Date</th>
-                  <th className="text-left py-3 px-6 text-sm font-medium text-gray-500">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {applications.map((application) => (
-                  <tr key={application.id} className="hover:bg-gray-50">
-                    <td className="py-3 px-6 font-medium text-gray-900">{application.student.name}</td>
-                    <td className="py-3 px-6 text-gray-600">{application.student.email}</td>
-                    <td className="py-3 px-6">
-                      <div>
-                        <p className="font-medium text-gray-900">{application.course.title}</p>
-                        <p className="text-xs text-gray-500">{application.course.shortName}</p>
-                      </div>
-                    </td>
-                    <td className="py-3 px-6">
-                      <span className="text-green-600 font-medium">KES {application.totalPaid.toLocaleString()}</span>
-                    </td>
-                    <td className="py-3 px-6 text-gray-600">
-                      {new Date(application.appliedAt).toLocaleDateString()}
-                    </td>
-                    <td className="py-3 px-6">
-                      <button
-                        onClick={() => setSelectedApplication(application)}
-                        className="flex items-center gap-1 text-blue-600 hover:text-blue-700"
-                      >
-                        <Eye size={16} />
-                        <span>Review</span>
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <DataTable
+          data={applications}
+          columns={[
+            { key: 'student.name', header: 'Student Name', render: (app) => app.student.name, className: 'font-medium text-gray-900' },
+            { key: 'student.email', header: 'Email', render: (app) => app.student.email },
+            { 
+              key: 'course', 
+              header: 'Course',
+              render: (app) => (
+                <div>
+                  <p className="font-medium text-gray-900">{app.course.title}</p>
+                  <p className="text-xs text-gray-500">{app.course.shortName}</p>
+                </div>
+              )
+            },
+            { 
+              key: 'totalPaid', 
+              header: 'Amount Paid',
+              render: (app) => <span className="text-green-600 font-medium">KES {app.totalPaid.toLocaleString()}</span>
+            },
+            { 
+              key: 'appliedAt', 
+              header: 'Application Date',
+              render: (app) => new Date(app.appliedAt).toLocaleDateString()
+            },
+          ]}
+          actions={[
+            {
+              label: 'Review',
+              icon: <Eye size={14} />,
+              onClick: (app) => setSelectedApplication(app)
+            }
+          ]}
+        />
       )}
 
       {/* Student Profile Modal */}

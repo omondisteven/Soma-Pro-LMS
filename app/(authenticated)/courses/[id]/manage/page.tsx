@@ -365,6 +365,7 @@ function SectionModal({ isOpen, onClose, onSave, courseId, editingSection }: any
 // Lesson Modal Component
 function LessonModal({ isOpen, onClose, onSave, courseId, sectionId, editingLesson }: any) {
   const [loading, setLoading] = useState(false)
+  const [dueDateError, setDueDateError] = useState('')
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -372,7 +373,8 @@ function LessonModal({ isOpen, onClose, onSave, courseId, sectionId, editingLess
     content: '',
     videoUrl: '',
     duration: 10,
-    isMandatory: true
+    isMandatory: true,
+    dueDate: ''
   })
 
   useEffect(() => {
@@ -384,7 +386,8 @@ function LessonModal({ isOpen, onClose, onSave, courseId, sectionId, editingLess
         content: editingLesson.content || '',
         videoUrl: editingLesson.videoUrl || '',
         duration: editingLesson.duration || 10,
-        isMandatory: editingLesson.isMandatory ?? true
+        isMandatory: editingLesson.isMandatory ?? true,
+        dueDate: editingLesson.dueDate ? new Date(editingLesson.dueDate).toISOString().split('T')[0] : ''
       })
     } else {
       setFormData({
@@ -394,15 +397,58 @@ function LessonModal({ isOpen, onClose, onSave, courseId, sectionId, editingLess
         content: '',
         videoUrl: '',
         duration: 10,
-        isMandatory: true
+        isMandatory: true,
+        dueDate: ''
       })
     }
+    setDueDateError('')
   }, [editingLesson, isOpen])
+
+  const validateDueDate = (date: string) => {
+    if (!date) return 'Due date is required for assignments'
+    const selectedDate = new Date(date)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    
+    if (selectedDate < today) {
+      return 'Due date cannot be earlier than today'
+    }
+    return ''
+  }
+
+  const handleDueDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    const error = validateDueDate(value)
+    setDueDateError(error)
+    setFormData({ ...formData, dueDate: value })
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Validate due date for assignments
+    if (formData.type === 'ASSIGNMENT') {
+      const error = validateDueDate(formData.dueDate)
+      if (error) {
+        setDueDateError(error)
+        return
+      }
+    }
+    
     setLoading(true)
     const token = localStorage.getItem('token')
+
+    // Prepare data for API
+    const submitData = {
+      title: formData.title,
+      description: formData.description,
+      type: formData.type,
+      content: formData.content,
+      videoUrl: formData.videoUrl,
+      duration: formData.duration,
+      isMandatory: formData.isMandatory,
+      dueDate: formData.type === 'ASSIGNMENT' ? formData.dueDate : undefined
+    }
 
     try {
       const url = editingLesson 
@@ -416,7 +462,7 @@ function LessonModal({ isOpen, onClose, onSave, courseId, sectionId, editingLess
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(submitData)
       })
 
       if (res.ok) {
@@ -488,6 +534,31 @@ function LessonModal({ isOpen, onClose, onSave, courseId, sectionId, editingLess
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+
+            {/* Due Date (only for ASSIGNMENT type) */}
+            {formData.type === 'ASSIGNMENT' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Due Date *
+                </label>
+                <input
+                  type="date"
+                  value={formData.dueDate}
+                  onChange={handleDueDateChange}
+                  min={new Date().toISOString().split('T')[0]}
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    dueDateError ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  required
+                />
+                {dueDateError && (
+                  <p className="text-red-500 text-xs mt-1">{dueDateError}</p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  Set the deadline for students to submit this assignment
+                </p>
+              </div>
+            )}
 
             {/* Content (for TEXT type) */}
             {formData.type === 'TEXT' && (

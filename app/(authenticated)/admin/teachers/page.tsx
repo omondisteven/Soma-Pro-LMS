@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { Plus, MoreVertical, Eye, Edit, Trash2, BookOpen, X } from 'lucide-react'
 import Link from 'next/link'
+import DataTable from '@/components/ui/DataTable'
+import router from 'next/router'
 
 interface Teacher {
   id: string
@@ -162,76 +164,39 @@ export default function AdminTeachersPage() {
       </div>
 
       {/* Teachers Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="text-left py-3 px-6 text-sm font-medium text-gray-500">Name</th>
-                <th className="text-left py-3 px-6 text-sm font-medium text-gray-500">Email</th>
-                <th className="text-left py-3 px-6 text-sm font-medium text-gray-500">Courses</th>
-                <th className="text-left py-3 px-6 text-sm font-medium text-gray-500">Students</th>
-                <th className="text-left py-3 px-6 text-sm font-medium text-gray-500">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {teachers.map((teacher) => (
-                <tr key={teacher.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="py-3 px-6 font-medium text-gray-900">{teacher.name}</td>
-                  <td className="py-3 px-6 text-gray-600">{teacher.email}</td>
-                  <td className="py-3 px-6 text-gray-600">{teacher.coursesTaught}</td>
-                  <td className="py-3 px-6 text-gray-600">{teacher.studentsEnrolled}</td>
-                  <td className="py-3 px-6 relative">
-                    <button
-                      onClick={() => setOpenMenuId(openMenuId === teacher.id ? null : teacher.id)}
-                      className="p-1 text-gray-400 hover:text-gray-600"
-                    >
-                      <MoreVertical size={18} />
-                    </button>
-                    {openMenuId === teacher.id && (
-                      <>
-                        <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
-                        <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
-                          <button
-                            onClick={() => handleView(teacher)}
-                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                          >
-                            <Eye size={14} />
-                            View Details
-                          </button>
-                          <button
-                            onClick={() => handleEdit(teacher)}
-                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                          >
-                            <Edit size={14} />
-                            Edit Teacher
-                          </button>
-                          <Link
-                            href={`/admin/assign-course?teacher=${teacher.id}`}
-                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                            onClick={() => setOpenMenuId(null)}
-                          >
-                            <BookOpen size={14} />
-                            Assign Courses
-                          </Link>
-                          <hr className="my-1" />
-                          <button
-                            onClick={() => handleDelete(teacher.id)}
-                            className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                          >
-                            <Trash2 size={14} />
-                            Delete
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <DataTable
+        data={teachers}
+        columns={[
+          { key: 'name', header: 'Name', className: 'font-medium text-gray-900' },
+          { key: 'email', header: 'Email' },
+          { key: 'coursesTaught', header: 'Courses' },
+          { key: 'studentsEnrolled', header: 'Students' },
+        ]}
+        actions={[
+          {
+            label: 'View Details',
+            icon: <Eye size={14} />,
+            onClick: (teacher) => handleView(teacher)
+          },
+          {
+            label: 'Edit Teacher',
+            icon: <Edit size={14} />,
+            onClick: (teacher) => handleEdit(teacher)
+          },
+          {
+            label: 'Assign Courses',
+            icon: <BookOpen size={14} />,
+            onClick: (teacher) => router.push(`/admin/assign-course?teacher=${teacher.id}`)
+          },
+          { divider: true },
+          {
+            label: 'Delete',
+            icon: <Trash2 size={14} />,
+            onClick: (teacher) => handleDelete(teacher.id),
+            className: 'text-red-600 hover:bg-red-50'
+          }
+        ]}
+      />
 
       {/* Add/Edit Teacher Modal */}
       {showModal && (

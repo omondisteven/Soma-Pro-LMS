@@ -127,9 +127,9 @@ export default function Sidebar({ userRole }: SidebarProps) {
           <>
             {/* Manage Courses - Direct link */}
             <Link
-              href="/admin/courses"
+              href="/courses"
               onClick={handleLinkClick}
-              className={menuItemClass(pathname === '/admin/courses')}
+              className={menuItemClass(pathname === '/courses' || pathname?.startsWith('/courses/'))}
             >
               <BookOpen size={18} />
               <span className="font-normal">Manage Courses</span>
@@ -223,87 +223,115 @@ export default function Sidebar({ userRole }: SidebarProps) {
           </Link>
         )}
 
-        {/* Courses Section - For Teachers, Students, and Admin (with full management) */}
-{(!isAdmin && !isTeacher) && (
-  // This section is for STUDENTS only now
-  <div className="mt-1">
-    <button
-      onClick={() => handleSectionToggle('courses')}
-      className={`w-full flex items-center justify-between px-3 py-2 mx-2 rounded-lg transition-all text-sm ${
-        isSectionActive(['/courses', '/courses/public', '/enroll-students'])
-          ? 'bg-blue-500/20 text-blue-300'
-          : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-      }`}
-    >
-      <div className="flex items-center gap-2.5">
-        <BookOpen size={18} />
-        <span className="font-medium">Courses</span>
-      </div>
-      {expandedSection === 'courses' ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-    </button>
-    
-    {expandedSection === 'courses' && (
-      <div className="ml-6 mt-0.5 space-y-0.5">
-        <Link
-          href="/courses"
-          onClick={handleLinkClick}
-          className={subMenuItemClass(pathname === '/courses')}
-        >
-          <span className="font-normal">My Courses</span>
-        </Link>
-        
+        {/* Courses Section - For Students only */}
         {isStudent && (
-          <Link
-            href="/courses/public"
-            onClick={handleLinkClick}
-            className={subMenuItemClass(pathname === '/courses/public')}
-          >
-            <span className="font-normal">Browse Courses</span>
-          </Link>
+          <div className="mt-1">
+            <button
+              onClick={() => handleSectionToggle('courses')}
+              className={`w-full flex items-center justify-between px-3 py-2 mx-2 rounded-lg transition-all text-sm ${
+                isSectionActive(['/courses', '/courses/public'])
+                  ? 'bg-blue-500/20 text-blue-300'
+                  : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <BookOpen size={18} />
+                <span className="font-medium">Courses</span>
+              </div>
+              {expandedSection === 'courses' ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            </button>
+            
+            {expandedSection === 'courses' && (
+              <div className="ml-6 mt-0.5 space-y-0.5">
+                <Link
+                  href="/courses"
+                  onClick={handleLinkClick}
+                  className={subMenuItemClass(pathname === '/courses')}
+                >
+                  <span className="font-normal">My Courses</span>
+                </Link>
+                <Link
+                  href="/courses/public"
+                  onClick={handleLinkClick}
+                  className={subMenuItemClass(pathname === '/courses/public')}
+                >
+                  <span className="font-normal">Browse Courses</span>
+                </Link>
+              </div>
+            )}
+          </div>
         )}
-      </div>
-    )}
-  </div>
-)}
 
-{/* For Admin and Teachers - Course Management (with full editing capabilities) */}
-  {(isAdmin || isTeacher) && (
-    <div className="mt-2">
-      <button
-        onClick={() => handleSectionToggle('courseManagement')}
-        className={`w-full flex items-center justify-between px-3 py-2 mx-2 rounded-lg transition-all text-sm ${
-          expandedSection === 'courseManagement'
-            ? 'bg-blue-500/20 text-blue-300'
-            : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-        }`}
-      >
-        <div className="flex items-center gap-2.5">
-          <BookOpen size={18} />
-          <span className="font-medium">Course Management</span>
-        </div>
-        {expandedSection === 'courseManagement' ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-      </button>
-      
-      {expandedSection === 'courseManagement' && (
-        <div className="ml-6 mt-0.5 space-y-0.5">
-          <Link
-            href="/courses"
-            onClick={handleLinkClick}
-            className={subMenuItemClass(pathname === '/courses')}
-          >
-            <span className="font-normal">My Courses</span>
-          </Link>
-          <Link
-            href="/courses?action=create"
-            onClick={handleLinkClick}
-            className={subMenuItemClass(pathname?.includes('create'))}
-          >
-            <span className="font-normal">Create Course</span>
-          </Link>
-        </div>
-      )}
-    </div>
-  )}
+        {/* Courses Section - For Teachers only */}
+        {isTeacher && (
+          <div className="mt-2">
+            <button
+              onClick={() => handleSectionToggle('courseManagement')}
+              className={`w-full flex items-center justify-between px-3 py-2 mx-2 rounded-lg transition-all text-sm ${
+                expandedSection === 'courseManagement'
+                  ? 'bg-blue-500/20 text-blue-300'
+                  : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <BookOpen size={18} />
+                <span className="font-medium">Course Management</span>
+              </div>
+              {expandedSection === 'courseManagement' ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            </button>
+            
+            {expandedSection === 'courseManagement' && (
+              <div className="ml-6 mt-0.5 space-y-0.5">
+                <Link
+                  href="/courses"
+                  onClick={handleLinkClick}
+                  className={subMenuItemClass(pathname === '/courses')}
+                >
+                  <span className="font-normal">Manage My Courses</span>
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Courses Section - For Teachers only */}
+        {isTeacher && (
+          <div className="mt-2">
+            <button
+              onClick={() => handleSectionToggle('courseManagement')}
+              className={`w-full flex items-center justify-between px-3 py-2 mx-2 rounded-lg transition-all text-sm ${
+                expandedSection === 'courseManagement'
+                  ? 'bg-blue-500/20 text-blue-300'
+                  : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <BookOpen size={18} />
+                <span className="font-medium">Course Management</span>
+              </div>
+              {expandedSection === 'courseManagement' ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            </button>
+            
+            {expandedSection === 'courseManagement' && (
+              <div className="ml-6 mt-0.5 space-y-0.5">
+                <Link
+                  href="/courses"
+                  onClick={handleLinkClick}
+                  className={subMenuItemClass(pathname === '/courses')}
+                >
+                  <span className="font-normal">My Courses</span>
+                </Link>
+                <Link
+                  href="/courses?action=create"
+                  onClick={handleLinkClick}
+                  className={subMenuItemClass(pathname?.includes('create'))}
+                >
+                  <span className="font-normal">Create Course</span>
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Reports Section - For Admin, Teachers, and Students */}
         {(isAdmin || isTeacher || isStudent) && (

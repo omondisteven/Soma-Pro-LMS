@@ -1,8 +1,9 @@
+// app/(authenticated)/courses/page.tsx
 'use client'
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { BookOpen, Users, Plus, Settings, Edit } from 'lucide-react'
+import { BookOpen, Users, Plus, Settings, Edit, PlayCircle, CheckCircle, Clock } from 'lucide-react'
 import CourseModal from '@/components/CourseModal'
 import CourseActionMenu from '@/components/CourseActionMenu'
 import ViewToggle, { ViewMode } from '@/components/ViewToggle'
@@ -233,84 +234,113 @@ export default function CoursesPage() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {courses.map((course) => {
             const button = getButtonState(course)
+            const isEnrolled = course.applicationStatus === 'APPROVED'
 
             return (
-              <div key={course.id} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg transition-shadow">
-                {/* Course Header */}
-                <div className="flex justify-between items-start mb-3">
-                  <Link href={isAdmin || isTeacher ? `/courses/${course.id}/manage` : `/courses/${course.id}`} className="flex-1">
-                    <h3 className="font-semibold text-lg text-gray-900 hover:text-blue-600 transition-colors">
-                      {course.title}
-                    </h3>
-                  </Link>
-                  
-                  {/* Action Menu for Admin/Teacher */}
-                  {(isAdmin || isTeacher) && (
-                    <CourseActionMenu
-                      courseId={course.id}
-                      courseTitle={course.title}
-                      onEdit={() => handleEditCourse(course)}
-                      onDelete={() => handleDeleteCourse(course.id)}
-                      onViewDetails={() => handleViewDetails(course)}
-                      showManageContent
-                    />
+              <div key={course.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+                {/* Course Image Placeholder */}
+                <div className="h-32 bg-gradient-to-r from-blue-500 to-purple-600 relative">
+                  {isEnrolled && (
+                    <div className="absolute top-3 right-3 bg-green-500 text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
+                      <CheckCircle size={12} />
+                      Enrolled
+                    </div>
                   )}
                 </div>
-
-                <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                  {course.description}
-                </p>
-
-                {/* Course Stats */}
-                <div className="flex items-center gap-4 text-xs text-gray-500 mb-3">
-                  <span className="flex items-center gap-1">
-                    <BookOpen size={12} />
-                    {course._count?.sections || 0} sections
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Users size={12} />
-                    {course._count?.enrollments || 0} students
-                  </span>
-                </div>
-
-                {/* Price if applicable */}
-                {(isStudent && course.price && course.price > 0) && (
-                  <div className="text-sm font-semibold text-gray-900 mb-3">
-                    {course.currency} {course.price}
+                
+                <div className="p-5">
+                  {/* Course Header */}
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg text-gray-900 line-clamp-1">
+                        {course.title}
+                      </h3>
+                      {course.shortName && (
+                        <p className="text-xs text-gray-500 mt-1">{course.shortName}</p>
+                      )}
+                    </div>
+                    
+                    {/* Action Menu for Admin/Teacher */}
+                    {(isAdmin || isTeacher) && (
+                      <CourseActionMenu
+                        courseId={course.id}
+                        courseTitle={course.title}
+                        onEdit={() => handleEditCourse(course)}
+                        onDelete={() => handleDeleteCourse(course.id)}
+                        onViewDetails={() => handleViewDetails(course)}
+                        showManageContent
+                      />
+                    )}
                   </div>
-                )}
 
-                {/* Student Action Button */}
-                {isStudent && (
-                  <button
-                    onClick={() => {
-                      if (!button.disabled) {
-                        window.location.href = `/checkout?course=${course.id}`
-                      }
-                    }}
-                    className={`w-full mt-2 px-4 py-2 rounded-lg transition-colors ${
-                      button.variant === 'success'
-                        ? 'bg-green-100 text-green-700 cursor-default'
-                        : button.variant === 'warning'
-                        ? 'bg-orange-500 text-white hover:bg-orange-600'
-                        : 'bg-blue-600 text-white hover:bg-blue-700'
-                    }`}
-                    disabled={button.disabled}
-                  >
-                    {button.text}
-                  </button>
-                )}
+                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                    {course.description}
+                  </p>
 
-                {/* Admin/Teacher Management Link */}
-                {(isAdmin || isTeacher) && (
-                  <Link
-                    href={`/courses/${course.id}/manage`}
-                    className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
-                  >
-                    <Settings size={14} />
-                    Manage Course Content
-                  </Link>
-                )}
+                  {/* Course Stats */}
+                  <div className="flex items-center gap-4 text-xs text-gray-500 mb-4">
+                    <span className="flex items-center gap-1">
+                      <BookOpen size={12} />
+                      {course._count?.sections || 0} sections
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Users size={12} />
+                      {course._count?.enrollments || 0} students
+                    </span>
+                  </div>
+
+                  {/* Student Section */}
+                  {isStudent && (
+                    <div className="space-y-2">
+                      {/* Price if applicable */}
+                      {course.price && course.price > 0 && !isEnrolled && (
+                        <div className="text-sm font-semibold text-gray-900">
+                          {course.currency} {course.price}
+                        </div>
+                      )}
+                      
+                      {/* Action Button */}
+                      {isEnrolled ? (
+                        <Link
+                          href={`/courses/${course.id}`}
+                          className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                        >
+                          <PlayCircle size={18} />
+                          Start Learning
+                        </Link>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            if (!button.disabled) {
+                              window.location.href = `/checkout?course=${course.id}`
+                            }
+                          }}
+                          className={`w-full px-4 py-2 rounded-lg transition-colors ${
+                            button.variant === 'success'
+                              ? 'bg-green-100 text-green-700 cursor-default'
+                              : button.variant === 'warning'
+                              ? 'bg-orange-500 text-white hover:bg-orange-600'
+                              : 'bg-blue-600 text-white hover:bg-blue-700'
+                          }`}
+                          disabled={button.disabled}
+                        >
+                          {button.text}
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Admin/Teacher Management Link */}
+                  {(isAdmin || isTeacher) && (
+                    <Link
+                      href={`/courses/${course.id}/manage`}
+                      className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+                    >
+                      <Settings size={14} />
+                      Manage Course Content
+                    </Link>
+                  )}
+                </div>
               </div>
             )
           })}

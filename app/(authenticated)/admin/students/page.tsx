@@ -2,6 +2,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import DataTable from '@/components/ui/DataTable'
 import { Plus, MoreVertical, Eye, Edit, Trash2, GraduationCap, X } from 'lucide-react'
 
 interface Student {
@@ -176,75 +177,45 @@ export default function AdminStudentsPage() {
       </div>
 
       {/* Students Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="text-left py-3 px-6 text-sm font-medium text-gray-500">Name</th>
-                <th className="text-left py-3 px-6 text-sm font-medium text-gray-500">Email</th>
-                <th className="text-left py-3 px-6 text-sm font-medium text-gray-500">Education</th>
-                <th className="text-left py-3 px-6 text-sm font-medium text-gray-500">Courses</th>
-                <th className="text-left py-3 px-6 text-sm font-medium text-gray-500">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {students.map((student) => (
-                <tr key={student.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="py-3 px-6 font-medium text-gray-900">{student.name}</td>
-                  <td className="py-3 px-6 text-gray-600">{student.email}</td>
-                  <td className="py-3 px-6">
-                    <div className="flex items-center gap-1">
-                      <GraduationCap size={14} className="text-gray-400" />
-                      <span className="text-sm text-gray-600">
-                        {student.qualification ? `${student.qualification} - ${student.qualificationDiscipline}` : 'Not specified'}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="py-3 px-6 text-gray-600">{student.enrolledCourses}</td>
-                  <td className="py-3 px-6 relative">
-                    <button
-                      onClick={() => setOpenMenuId(openMenuId === student.id ? null : student.id)}
-                      className="p-1 text-gray-400 hover:text-gray-600"
-                    >
-                      <MoreVertical size={18} />
-                    </button>
-                    {openMenuId === student.id && (
-                      <>
-                        <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
-                        <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
-                          <button
-                            onClick={() => handleView(student)}
-                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                          >
-                            <Eye size={14} />
-                            View Details
-                          </button>
-                          <button
-                            onClick={() => handleEdit(student)}
-                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                          >
-                            <Edit size={14} />
-                            Edit Student
-                          </button>
-                          <hr className="my-1" />
-                          <button
-                            onClick={() => handleDelete(student.id)}
-                            className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                          >
-                            <Trash2 size={14} />
-                            Delete
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <DataTable
+        data={students}
+        columns={[
+          { key: 'name', header: 'Name', className: 'font-medium text-gray-900' },
+          { key: 'email', header: 'Email' },
+          {
+            key: 'qualification',
+            header: 'Education',
+            render: (student) => (
+              <div className="flex items-center gap-1">
+                <GraduationCap size={14} className="text-gray-400" />
+                <span className="text-sm text-gray-600">
+                  {student.qualification ? `${student.qualification} - ${student.qualificationDiscipline}` : 'Not specified'}
+                </span>
+              </div>
+            )
+          },
+          { key: 'enrolledCourses', header: 'Courses' },
+        ]}
+        actions={[
+          {
+            label: 'View Details',
+            icon: <Eye size={14} />,
+            onClick: (student) => handleView(student)
+          },
+          {
+            label: 'Edit Student',
+            icon: <Edit size={14} />,
+            onClick: (student) => handleEdit(student)
+          },
+          { divider: true },
+          {
+            label: 'Delete',
+            icon: <Trash2 size={14} />,
+            onClick: (student) => handleDelete(student.id),
+            className: 'text-red-600 hover:bg-red-50'
+          }
+        ]}
+      />
 
       {/* Add/Edit Student Modal */}
       {showModal && (
