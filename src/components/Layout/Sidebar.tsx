@@ -1,4 +1,5 @@
 // src\components\Layout\Sidebar.tsx
+// src/components/Layout/Sidebar.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -31,10 +32,8 @@ interface SidebarProps {
 
 export default function Sidebar({ userRole }: SidebarProps) {
   const pathname = usePathname()
-  const [isCoursesOpen, setIsCoursesOpen] = useState(false)
-  const [isReportsOpen, setIsReportsOpen] = useState(false)
-  const [isTeachersOpen, setIsTeachersOpen] = useState(false)
-  const [isStudentsOpen, setIsStudentsOpen] = useState(false)
+  // Track which section is expanded - only one at a time
+  const [expandedSection, setExpandedSection] = useState<string | null>(null)
   const [isMobile, setIsMobile] = useState(false)
   const { isOpen, closeSidebar } = useSidebar()
 
@@ -65,6 +64,15 @@ export default function Sidebar({ userRole }: SidebarProps) {
     }
   }
 
+  // Handle section expansion - closes other sections
+  const handleSectionToggle = (section: string) => {
+    if (expandedSection === section) {
+      setExpandedSection(null)
+    } else {
+      setExpandedSection(section)
+    }
+  }
+
   const isAdmin = userRole === 'ADMIN'
   const isManager = userRole === 'MANAGER'
   const isTeacher = userRole === 'TEACHER'
@@ -72,7 +80,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
 
   const sidebarContent = (
     <>
-      <div className="p-4 border-b border-gray-700">
+      <div className="p-4 border-b border-gray-700 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
@@ -91,7 +99,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
         </div>
       </div>
       
-      <nav className="flex-1 py-4 overflow-y-auto">
+      <nav className="flex-1 overflow-y-auto overflow-x-hidden py-4 min-h-0">
         {/* Dashboard - Everyone */}
         <Link
           href="/dashboard"
@@ -118,17 +126,17 @@ export default function Sidebar({ userRole }: SidebarProps) {
             {/* Teachers Collapsible Section */}
             <div className="mt-1">
               <button
-                onClick={() => setIsTeachersOpen(!isTeachersOpen)}
+                onClick={() => handleSectionToggle('teachers')}
                 className="w-full flex items-center justify-between px-3 py-2 mx-2 rounded-lg transition-all text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
               >
                 <div className="flex items-center gap-2.5">
                   <Users size={18} />
                   <span className="font-medium">Teachers</span>
                 </div>
-                {isTeachersOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                {expandedSection === 'teachers' ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
               </button>
               
-              {isTeachersOpen && (
+              {expandedSection === 'teachers' && (
                 <div className="ml-6 mt-0.5 space-y-0.5">
                   <Link
                     href="/admin/teachers"
@@ -159,17 +167,17 @@ export default function Sidebar({ userRole }: SidebarProps) {
             {/* Students Collapsible Section */}
             <div className="mt-1">
               <button
-                onClick={() => setIsStudentsOpen(!isStudentsOpen)}
+                onClick={() => handleSectionToggle('students')}
                 className="w-full flex items-center justify-between px-3 py-2 mx-2 rounded-lg transition-all text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
               >
                 <div className="flex items-center gap-2.5">
                   <GraduationCap size={18} />
                   <span className="font-medium">Students</span>
                 </div>
-                {isStudentsOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                {expandedSection === 'students' ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
               </button>
               
-              {isStudentsOpen && (
+              {expandedSection === 'students' && (
                 <div className="ml-6 mt-0.5 space-y-0.5">
                   <Link
                     href="/admin/students"
@@ -215,17 +223,17 @@ export default function Sidebar({ userRole }: SidebarProps) {
         {!isAdmin && (
           <div className="mt-1">
             <button
-              onClick={() => setIsCoursesOpen(!isCoursesOpen)}
+              onClick={() => handleSectionToggle('courses')}
               className="w-full flex items-center justify-between px-3 py-2 mx-2 rounded-lg transition-all text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
             >
               <div className="flex items-center gap-2.5">
                 <BookOpen size={18} />
                 <span className="font-medium">Courses</span>
               </div>
-              {isCoursesOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+              {expandedSection === 'courses' ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             </button>
             
-            {isCoursesOpen && (
+            {expandedSection === 'courses' && (
               <div className="ml-6 mt-0.5 space-y-0.5">
                 <Link
                   href="/courses"
@@ -275,17 +283,17 @@ export default function Sidebar({ userRole }: SidebarProps) {
         {(isAdmin || isTeacher || isStudent) && (
           <div className="mt-2">
             <button
-              onClick={() => setIsReportsOpen(!isReportsOpen)}
+              onClick={() => handleSectionToggle('reports')}
               className="w-full flex items-center justify-between px-3 py-2 mx-2 rounded-lg transition-all text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
             >
               <div className="flex items-center gap-2.5">
                 <BarChart3 size={18} />
                 <span className="font-medium">Reports</span>
               </div>
-              {isReportsOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+              {expandedSection === 'reports' ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             </button>
             
-            {isReportsOpen && (
+            {expandedSection === 'reports' && (
               <div className="ml-6 mt-0.5 space-y-0.5">
                 {/* Teacher Reports - For Admin and Teachers */}
                 {(isAdmin || isTeacher) && (
@@ -301,29 +309,28 @@ export default function Sidebar({ userRole }: SidebarProps) {
                     <Link href="/reports/assignment-analysis" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
                       <FileText size={16} />
                       <span className="font-normal">Assignment Analysis</span>
-                    </Link>
-                    {isAdmin && (
-                          <>
-                            <div className="border-t border-gray-700 my-2"></div>
-                            <p className="text-xs text-gray-400 px-3 mt-2">Admin Reports</p>
-
-                            <Link
-                              href="/admin/finance"
-                              onClick={handleLinkClick}
-                              className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
-                            >
-                              <DollarSign size={16} />
-                              <span>Financial Reports</span>
-                            </Link>
-                          </>
-                        )}
-                      </>
-                    )}                    
+                    </Link>                                   
                     <Link href="/reports/grade-distribution" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
                       <PieChart size={16} />
                       <span className="font-normal">Grade Distribution</span>
                     </Link>
-                    
+                    {isAdmin && (
+                      <>
+                        <div className="border-t border-gray-700 my-2"></div>
+                        <p className="text-xs text-gray-400 px-3 mt-2">Admin Reports</p>
+
+                        <Link
+                          href="/admin/finance"
+                          onClick={handleLinkClick}
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
+                        >
+                          <DollarSign size={16} />
+                          <span>Financial Reports</span>
+                        </Link>
+                      </>
+                    )}
+                  </>
+                )}     
                 {/* Student Reports - For Admin and Students */}
                 {(isAdmin || isStudent) && (
                   <>
@@ -439,7 +446,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
           />
         )}
         
-        <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-gray-900 to-gray-800 text-white transform transition-transform duration-300 ease-in-out ${
+        <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-gray-900 to-gray-800 text-white transform transition-transform duration-300 ease-in-out flex flex-col ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}>
           {sidebarContent}
@@ -449,7 +456,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
   }
 
   return (
-    <aside className="hidden lg:block fixed top-0 left-0 h-full w-56 bg-gradient-to-b from-gray-900 to-gray-800 text-white flex flex-col shadow-xl z-20">
+    <aside className="hidden lg:flex fixed top-0 left-0 h-full w-56 bg-gradient-to-b from-gray-900 to-gray-800 text-white flex-col shadow-xl z-20">
       {sidebarContent}
     </aside>
   )
