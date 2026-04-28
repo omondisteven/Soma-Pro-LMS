@@ -1,4 +1,3 @@
-// app/(authenticated)/layout.tsx
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -75,7 +74,7 @@ export default function AuthenticatedLayout({
       
       {/* Main Content Area - with margin on desktop to account for sidebar */}
       <div className="lg:ml-56 flex flex-col min-h-screen">
-        {/* Mobile Header - visible on mobile only */}
+        {/* Mobile Header - visible on mobile only (reads user data from localStorage internally) */}
         <div className="lg:hidden">
           <MobileHeader />
         </div>
