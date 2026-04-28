@@ -1,4 +1,3 @@
-// app\api\courses\[id]\sections\[sectionId]\lessons\route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getUserFromToken } from '@/lib/auth'
@@ -11,7 +10,8 @@ export async function POST(
   const token = request.headers.get('authorization')?.replace('Bearer ', '')
   const user = await getUserFromToken(token)
   
-  if (!user || user.role !== 'TEACHER') {
+  // Allow ADMIN or TEACHER
+  if (!user || (user.role !== 'TEACHER' && user.role !== 'ADMIN')) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   
@@ -19,15 +19,34 @@ export async function POST(
     const { id: courseId, sectionId } = await params
     const { title, description, type, content, videoUrl, duration, isMandatory, dueDate } = await request.json()
     
-    // Verify course ownership
-    const course = await prisma.course.findFirst({
-      where: { id: courseId, ownerId: user.id },
-      include: {
-        enrollments: {
-          select: { studentId: true }
+    // Verify course ownership or admin access
+    let course = null
+    
+    if (user.role === 'ADMIN') {
+      course = await prisma.course.findUnique({
+        where: { id: courseId },
+        include: {
+          enrollments: {
+            select: { studentId: true }
+          }
         }
-      }
-    })
+      })
+    } else {
+      course = await prisma.course.findFirst({
+        where: { 
+          id: courseId, 
+          OR: [
+            { ownerId: user.id },
+            { instructors: { some: { instructorId: user.id } } }
+          ]
+        },
+        include: {
+          enrollments: {
+            select: { studentId: true }
+          }
+        }
+      })
+    }
     
     if (!course) {
       return NextResponse.json({ error: 'Course not found or access denied' }, { status: 404 })
@@ -137,6 +156,36 @@ export async function GET(
   
   try {
     const { id: courseId, sectionId } = await params
+    
+    // Verify access
+    let hasAccess = false
+    
+    if (user.role === 'ADMIN') {
+      hasAccess = true
+    } else if (user.role === 'TEACHER') {
+      const course = await prisma.course.findFirst({
+        where: {
+          id: courseId,
+          OR: [
+            { ownerId: user.id },
+            { instructors: { some: { instructorId: user.id } } }
+          ]
+        }
+      })
+      hasAccess = !!course
+    } else if (user.role === 'STUDENT') {
+      const enrollment = await prisma.enrollment.findFirst({
+        where: {
+          studentId: user.id,
+          courseId
+        }
+      })
+      hasAccess = !!enrollment
+    }
+    
+    if (!hasAccess) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 })
+    }
     
     const lessons = await prisma.lesson.findMany({
       where: { sectionId },
