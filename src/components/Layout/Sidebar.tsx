@@ -262,7 +262,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
           </div>
         )}
 
-        {/* Courses Section - For Teachers only */}
+        {/* Courses Section - For Teachers only (with Manage My Courses only) */}
         {isTeacher && (
           <div className="mt-2">
             <button
@@ -294,46 +294,63 @@ export default function Sidebar({ userRole }: SidebarProps) {
           </div>
         )}
 
-        {/* Courses Section - For Teachers only */}
-        {isTeacher && (
-          <div className="mt-2">
-            <button
-              onClick={() => handleSectionToggle('courseManagement')}
-              className={`w-full flex items-center justify-between px-3 py-2 mx-2 rounded-lg transition-all text-sm ${
-                expandedSection === 'courseManagement'
-                  ? 'bg-blue-500/20 text-blue-300'
-                  : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <BookOpen size={18} />
-                <span className="font-medium">Course Management</span>
-              </div>
-              {expandedSection === 'courseManagement' ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-            </button>
+        {/* Reports Section - Moved to just above Settings */}
+        {/* This section will be rendered after all other main sections but before Settings */}
+
+        {/* Other Menu Items for non-Admin */}
+        {!isAdmin && (
+          <div className="mt-2 space-y-0.5">
+            {/* Assignments - Only Students */}
+            {isStudent && (
+              <Link
+                href="/assignments"
+                onClick={handleLinkClick}
+                className={menuItemClass(pathname === '/assignments')}
+              >
+                <Calendar size={18} />
+                <span className="font-normal">Assignments</span>
+              </Link>
+            )}
             
-            {expandedSection === 'courseManagement' && (
-              <div className="ml-6 mt-0.5 space-y-0.5">
-                <Link
-                  href="/courses"
-                  onClick={handleLinkClick}
-                  className={subMenuItemClass(pathname === '/courses')}
-                >
-                  <span className="font-normal">My Courses</span>
-                </Link>
-                <Link
-                  href="/courses?action=create"
-                  onClick={handleLinkClick}
-                  className={subMenuItemClass(pathname?.includes('create'))}
-                >
-                  <span className="font-normal">Create Course</span>
-                </Link>
-              </div>
+            {/* Grades - Only Students */}
+            {isStudent && (
+              <Link
+                href="/grades"
+                onClick={handleLinkClick}
+                className={menuItemClass(pathname === '/grades')}
+              >
+                <Award size={18} />
+                <span className="font-normal">Grades</span>
+              </Link>
+            )}
+            
+            {/* Grading - Only Teachers */}
+            {isTeacher && (
+              <Link
+                href="/teacher/grading"
+                onClick={handleLinkClick}
+                className={menuItemClass(pathname === '/teacher/grading')}
+              >
+                <Award size={18} />
+                <span className="font-normal">Grading</span>
+              </Link>
+            )}
+            
+            {/* Students Management - Only Teachers */}
+            {isTeacher && (
+              <Link
+                href="/students"
+                onClick={handleLinkClick}
+                className={menuItemClass(pathname === '/students')}
+              >
+                <Users size={18} />
+                <span className="font-normal">Students</span>
+              </Link>
             )}
           </div>
         )}
 
-        {/* Reports Section - For Admin, Teachers, and Students */}
+        {/* Reports Section - For Admin, Teachers, and Students (moved here) */}
         {(isAdmin || isTeacher || isStudent) && (
           <div className="mt-2">
             <button
@@ -423,58 +440,9 @@ export default function Sidebar({ userRole }: SidebarProps) {
           </div>
         )}
 
-        {/* Other Menu Items for non-Admin */}
+        {/* Settings Section - Always at the bottom */}
         {!isAdmin && (
-          <div className="mt-2 space-y-0.5">
-            {/* Assignments - Only Students */}
-            {isStudent && (
-              <Link
-                href="/assignments"
-                onClick={handleLinkClick}
-                className={menuItemClass(pathname === '/assignments')}
-              >
-                <Calendar size={18} />
-                <span className="font-normal">Assignments</span>
-              </Link>
-            )}
-            
-            {/* Grades - Only Students */}
-            {isStudent && (
-              <Link
-                href="/grades"
-                onClick={handleLinkClick}
-                className={menuItemClass(pathname === '/grades')}
-              >
-                <Award size={18} />
-                <span className="font-normal">Grades</span>
-              </Link>
-            )}
-            
-            {/* Grading - Only Teachers */}
-            {isTeacher && (
-              <Link
-                href="/teacher/grading"
-                onClick={handleLinkClick}
-                className={menuItemClass(pathname === '/teacher/grading')}
-              >
-                <Award size={18} />
-                <span className="font-normal">Grading</span>
-              </Link>
-            )}
-            
-            {/* Students Management - Only Teachers */}
-            {isTeacher && (
-              <Link
-                href="/students"
-                onClick={handleLinkClick}
-                className={menuItemClass(pathname === '/students')}
-              >
-                <Users size={18} />
-                <span className="font-normal">Students</span>
-              </Link>
-            )}
-            
-            {/* Settings - Everyone */}
+          <div className="mt-2 pt-2 border-t border-gray-700">
             <Link
               href="/settings"
               onClick={handleLinkClick}
