@@ -1,4 +1,4 @@
-// app\api\admin\finance\route.ts
+// app/api/admin/finance/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getUserFromToken } from '@/lib/auth'
@@ -7,52 +7,70 @@ export async function GET(request: NextRequest) {
   const token = request.headers.get('authorization')?.replace('Bearer ', '')
   const user = await getUserFromToken(token)
   
-  // Only allow teachers and admins to access finance data
-  if (!user || (user.role !== 'TEACHER' && user.role !== 'ADMIN')) {
+  // Only allow admins to access finance data
+  if (!user || user.role !== 'ADMIN') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   
   try {
-    const totalRevenue = await prisma.payment.aggregate({
-      _sum: { paidAmount: true },
-      where: { status: 'COMPLETED' }
+    // Calculate total revenue from applications (same as dashboard)
+    const paidApplications = await prisma.application.findMany({
+      where: {
+        status: {
+          in: ['PAID', 'APPROVED']
+        }
+      },
+      include: {
+        student: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        course: {
+          select: {
+            id: true,
+            title: true
+          }
+        }
+      },
+      orderBy: { appliedAt: 'desc' }  // Changed from createdAt to appliedAt
     })
 
-    const payments = await prisma.payment.findMany({
-      include: { 
-        student: { 
-          select: { 
-            id: true, 
-            name: true, 
-            email: true 
-          } 
-        }, 
-        course: { 
-          select: { 
-            id: true, 
-            title: true 
-          } 
-        } 
-      },
-      orderBy: { createdAt: 'desc' }
-    })
+    const totalRevenue = paidApplications.reduce(
+      (sum, app) => sum + (app.totalPaid || 0),
+      0
+    )
 
     // Calculate monthly revenue
-    const monthlyRevenue = await prisma.$queryRaw`
-      SELECT 
-        DATE_FORMAT(createdAt, '%Y-%m') as month,
-        SUM(paidAmount) as amount
-      FROM Payment
-      WHERE status = 'COMPLETED'
-      GROUP BY DATE_FORMAT(createdAt, '%Y-%m')
-      ORDER BY month DESC
-      LIMIT 6
-    `
+    const monthlyRevenueMap = new Map<string, number>()
+    
+    paidApplications.forEach(app => {
+      const month = app.appliedAt.toISOString().slice(0, 7) // YYYY-MM (changed from createdAt to appliedAt)
+      const amount = app.totalPaid || 0
+      monthlyRevenueMap.set(month, (monthlyRevenueMap.get(month) || 0) + amount)
+    })
+
+    const monthlyRevenue = Array.from(monthlyRevenueMap.entries())
+      .map(([month, amount]) => ({ month, amount }))
+      .sort((a, b) => b.month.localeCompare(a.month))
+      .slice(0, 6)
+
+    // Format payments for display
+    const payments = paidApplications.map(app => ({
+      id: app.id,
+      student: app.student,
+      course: app.course,
+      paidAmount: app.totalPaid,
+      appliedAt: app.appliedAt,  // Changed from createdAt to appliedAt
+      status: 'COMPLETED'
+    }))
 
     return NextResponse.json({
-      totalRevenue: totalRevenue._sum.paidAmount || 0,
-      payments: payments || [],
-      monthlyRevenue: monthlyRevenue || []
+      totalRevenue: totalRevenue,
+      payments: payments,
+      monthlyRevenue: monthlyRevenue
     })
   } catch (error) {
     console.error('Error fetching finance data:', error)
