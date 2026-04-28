@@ -1,9 +1,8 @@
-// app\(authenticated)\courses\page.tsx
 'use client'
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { BookOpen, Users, Plus } from 'lucide-react'
+import { BookOpen, Users, Plus, Settings, Edit } from 'lucide-react'
 import CourseModal from '@/components/CourseModal'
 import CourseActionMenu from '@/components/CourseActionMenu'
 import ViewToggle, { ViewMode } from '@/components/ViewToggle'
@@ -33,7 +32,6 @@ interface Course {
   owner?: { name: string }
   instructors?: CourseInstructor[]
   teacher?: { name: string }
-  // ✅ NEW FIELDS (from backend)
   applicationStatus?: string | null
   totalPaid?: number
   price?: number
@@ -149,10 +147,11 @@ export default function CoursesPage() {
     setIsViewMode(false)
   }
 
+  const isAdmin = user?.role === 'ADMIN'
   const isTeacher = user?.role === 'TEACHER'
   const isStudent = user?.role === 'STUDENT'
 
-  // ✅ SAME LOGIC AS PUBLIC PAGE
+  // Button state for student enrollment
   const getButtonState = (course: Course) => {
     const status = course.applicationStatus
 
@@ -187,23 +186,28 @@ export default function CoursesPage() {
 
   return (
     <>
-      <div className="bg-gray-200 flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">
-          {isTeacher
-            ? 'Manage your courses'
-            : 'My Courses'}
-        </h1>
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">
+            {isAdmin ? 'Course Management' : isTeacher ? 'Manage Your Courses' : 'My Courses'}
+          </h1>
+          <p className="text-gray-600 mt-1">
+            {isAdmin ? 'Create, edit, and manage all courses in the system' : 
+              isTeacher ? 'Create and manage your course content' : 
+              'Continue your learning journey'}
+          </p>
+        </div>
 
         <div className="flex gap-4">
           <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
 
-          {isTeacher && (
+          {(isAdmin || isTeacher) && (
             <button
               onClick={() => {
                 setEditingCourse(null)
                 setIsModalOpen(true)
               }}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg flex gap-2"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
             >
               <Plus size={20} />
               Create Course
@@ -213,9 +217,17 @@ export default function CoursesPage() {
       </div>
 
       {courses.length === 0 ? (
-        <div className="text-center p-12">
+        <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
           <BookOpen size={64} className="mx-auto text-gray-400 mb-4" />
-          <p>No courses yet</p>
+          <p className="text-gray-600">No courses yet</p>
+          {(isAdmin || isTeacher) && (
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            >
+              Create Your First Course
+            </button>
+          )}
         </div>
       ) : viewMode === 'grid' ? (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -223,16 +235,52 @@ export default function CoursesPage() {
             const button = getButtonState(course)
 
             return (
-              <div key={course.id} className="bg-white rounded-xl border p-5">
-                <Link href={`/courses/${course.id}`}>
-                  <h3 className="font-semibold text-lg">{course.title}</h3>
-                </Link>
+              <div key={course.id} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg transition-shadow">
+                {/* Course Header */}
+                <div className="flex justify-between items-start mb-3">
+                  <Link href={isAdmin || isTeacher ? `/courses/${course.id}/manage` : `/courses/${course.id}`} className="flex-1">
+                    <h3 className="font-semibold text-lg text-gray-900 hover:text-blue-600 transition-colors">
+                      {course.title}
+                    </h3>
+                  </Link>
+                  
+                  {/* Action Menu for Admin/Teacher */}
+                  {(isAdmin || isTeacher) && (
+                    <CourseActionMenu
+                      courseId={course.id}
+                      courseTitle={course.title}
+                      onEdit={() => handleEditCourse(course)}
+                      onDelete={() => handleDeleteCourse(course.id)}
+                      onViewDetails={() => handleViewDetails(course)}
+                      showManageContent
+                    />
+                  )}
+                </div>
 
-                <p className="text-sm text-gray-600 mb-3">
+                <p className="text-sm text-gray-600 mb-3 line-clamp-2">
                   {course.description}
                 </p>
 
-                {/* ✅ STUDENT ACTION BUTTON */}
+                {/* Course Stats */}
+                <div className="flex items-center gap-4 text-xs text-gray-500 mb-3">
+                  <span className="flex items-center gap-1">
+                    <BookOpen size={12} />
+                    {course._count?.sections || 0} sections
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Users size={12} />
+                    {course._count?.enrollments || 0} students
+                  </span>
+                </div>
+
+                {/* Price if applicable */}
+                {(isStudent && course.price && course.price > 0) && (
+                  <div className="text-sm font-semibold text-gray-900 mb-3">
+                    {course.currency} {course.price}
+                  </div>
+                )}
+
+                {/* Student Action Button */}
                 {isStudent && (
                   <button
                     onClick={() => {
@@ -240,28 +288,28 @@ export default function CoursesPage() {
                         window.location.href = `/checkout?course=${course.id}`
                       }
                     }}
-                    className={`w-full mt-2 px-4 py-2 rounded ${
+                    className={`w-full mt-2 px-4 py-2 rounded-lg transition-colors ${
                       button.variant === 'success'
-                        ? 'bg-green-100 text-green-700'
+                        ? 'bg-green-100 text-green-700 cursor-default'
                         : button.variant === 'warning'
-                        ? 'bg-orange-500 text-white'
-                        : 'bg-blue-600 text-white'
+                        ? 'bg-orange-500 text-white hover:bg-orange-600'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
                     }`}
+                    disabled={button.disabled}
                   >
                     {button.text}
                   </button>
                 )}
 
-                {/* TEACHER MENU */}
-                {isTeacher && (
-                  <CourseActionMenu
-                    courseId={course.id}
-                    courseTitle={course.title}
-                    onEdit={() => handleEditCourse(course)}
-                    onDelete={() => handleDeleteCourse(course.id)}
-                    onViewDetails={() => handleViewDetails(course)}
-                    showManageContent
-                  />
+                {/* Admin/Teacher Management Link */}
+                {(isAdmin || isTeacher) && (
+                  <Link
+                    href={`/courses/${course.id}/manage`}
+                    className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+                  >
+                    <Settings size={14} />
+                    Manage Course Content
+                  </Link>
                 )}
               </div>
             )

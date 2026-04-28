@@ -64,7 +64,12 @@ export async function GET(
       })
     }
     
-    // Check if user has access
+    // Check if user has access - ADMIN can access everything
+    if (user.role === 'ADMIN') {
+      // Admins have full access
+      return NextResponse.json({ course })
+    }
+    
     if (user.role === 'STUDENT') {
       const isEnrolled = await prisma.enrollment.findFirst({
         where: {
@@ -73,7 +78,6 @@ export async function GET(
         }
       })
       // For checkout page, still return course info even if not enrolled
-      // Only block if they need to access course content
       if (!isEnrolled && request.nextUrl.pathname.includes('/checkout')) {
         // Return limited info for checkout
         return NextResponse.json({ 
@@ -115,7 +119,6 @@ export async function GET(
 }
 
 // PUT - Update course
-// PUT - Update course
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -123,7 +126,8 @@ export async function PUT(
   const token = request.headers.get('authorization')?.replace('Bearer ', '')
   const user = await getUserFromToken(token)
   
-  if (!user || user.role !== 'TEACHER') {
+  // Allow ADMIN or TEACHER
+  if (!user || (user.role !== 'TEACHER' && user.role !== 'ADMIN')) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   
@@ -139,8 +143,8 @@ export async function PUT(
       status, 
       startDate, 
       endDate,
-      price,           // Add this
-      currency,        // Add this
+      price,
+      currency, 
       instructorIds 
     } = body
     
@@ -152,16 +156,26 @@ export async function PUT(
       )
     }
     
-    // Check if course exists and user has access (owner or instructor)
-    const existingCourse = await prisma.course.findFirst({
-      where: {
-        id: courseId,
-        OR: [
-          { ownerId: user.id },
-          { instructors: { some: { instructorId: user.id } } }
-        ]
-      }
-    })
+    // Check if course exists and user has access
+    let existingCourse = null
+    
+    if (user.role === 'ADMIN') {
+      // Admin can access any course
+      existingCourse = await prisma.course.findUnique({
+        where: { id: courseId }
+      })
+    } else {
+      // Teacher can only access their own courses
+      existingCourse = await prisma.course.findFirst({
+        where: {
+          id: courseId,
+          OR: [
+            { ownerId: user.id },
+            { instructors: { some: { instructorId: user.id } } }
+          ]
+        }
+      })
+    }
     
     if (!existingCourse) {
       return NextResponse.json({ error: 'Course not found or access denied' }, { status: 404 })
@@ -169,7 +183,7 @@ export async function PUT(
     
     // Update course and instructors in a transaction
     const course = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      // Update course details including price and currency
+      // Update course details
       const updatedCourse = await tx.course.update({
         where: { id: courseId },
         data: {
@@ -181,8 +195,8 @@ export async function PUT(
           status: status || existingCourse.status,
           startDate: new Date(startDate),
           endDate: endDate ? new Date(endDate) : null,
-          price: price !== undefined ? price : existingCourse.price,     // Add this
-          currency: currency || existingCourse.currency,                 // Add this
+          price: price !== undefined ? price : existingCourse.price,
+          currency: currency || existingCourse.currency,
         }
       })
       
@@ -192,7 +206,7 @@ export async function PUT(
       })
       
       // Add all instructors including owner (deduplicate)
-      const allInstructorIds = [...new Set([user.id, ...(instructorIds || [])])]
+      const allInstructorIds = [...new Set([existingCourse.ownerId, ...(instructorIds || [])])]
       
       await tx.courseInstructor.createMany({
         data: allInstructorIds.map(instructorId => ({
@@ -215,8 +229,6 @@ export async function PUT(
 }
 
 // DELETE - Delete course
-// DELETE - Delete course
-// DELETE - Delete course
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -224,20 +236,29 @@ export async function DELETE(
   const token = request.headers.get('authorization')?.replace('Bearer ', '')
   const user = await getUserFromToken(token)
   
-  if (!user || user.role !== 'TEACHER') {
+  // Allow ADMIN or TEACHER (only owner for teacher)
+  if (!user || (user.role !== 'TEACHER' && user.role !== 'ADMIN')) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   
   try {
     const { id: courseId } = await params
     
-    // Check if course exists and user is the owner
-    const existingCourse = await prisma.course.findFirst({
-      where: {
-        id: courseId,
-        ownerId: user.id
-      }
-    })
+    // Check if course exists and user has access
+    let existingCourse = null
+    
+    if (user.role === 'ADMIN') {
+      existingCourse = await prisma.course.findUnique({
+        where: { id: courseId }
+      })
+    } else {
+      existingCourse = await prisma.course.findFirst({
+        where: {
+          id: courseId,
+          ownerId: user.id
+        }
+      })
+    }
     
     if (!existingCourse) {
       return NextResponse.json({ error: 'Course not found or access denied' }, { status: 404 })
@@ -273,67 +294,42 @@ export async function DELETE(
     
     // Delete in correct order using transactions
     await prisma.$transaction([
-      // Delete assignment submissions
       prisma.assignmentSubmission.deleteMany({
         where: { assignmentId: { in: assignmentIds } }
       }),
-      
-      // Delete assignments
       prisma.assignment.deleteMany({
         where: { id: { in: assignmentIds } }
       }),
-      
-      // Delete quiz attempts
       prisma.quizAttempt.deleteMany({
         where: { quizId: { in: quizIds } }
       }),
-      
-      // Delete questions
       prisma.question.deleteMany({
         where: { quizId: { in: quizIds } }
       }),
-      
-      // Delete quizzes
       prisma.quiz.deleteMany({
         where: { id: { in: quizIds } }
       }),
-      
-      // Delete student progress
       prisma.studentProgress.deleteMany({
         where: { lessonId: { in: lessonIds } }
       }),
-      
-      // Delete lessons
       prisma.lesson.deleteMany({
         where: { id: { in: lessonIds } }
       }),
-      
-      // Delete sections
       prisma.section.deleteMany({
         where: { id: { in: sectionIds } }
       }),
-      
-      // Delete course instructors
       prisma.courseInstructor.deleteMany({
         where: { courseId: courseId }
       }),
-      
-      // Delete enrollments
       prisma.enrollment.deleteMany({
         where: { courseId: courseId }
       }),
-      
-      // Delete applications
       prisma.application.deleteMany({
         where: { courseId: courseId }
       }),
-      
-      // Delete payments
       prisma.payment.deleteMany({
         where: { courseId: courseId }
       }),
-      
-      // Finally delete the course
       prisma.course.delete({
         where: { id: courseId }
       })

@@ -46,7 +46,9 @@ export default function CourseListView({
   onDelete,
   onViewDetails
 }: CourseListViewProps) {
+  const isAdmin = userRole === 'ADMIN'
   const isTeacher = userRole === 'TEACHER'
+  const canManage = isAdmin || isTeacher
 
   // Helper function to get instructor names
   const getInstructorNames = (course: Course) => {
@@ -73,8 +75,8 @@ export default function CourseListView({
             <div className="flex items-start justify-between">
               {/* Course Info */}
               <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <Link href={isTeacher ? `/teacher/courses/${course.id}/manage` : `/courses/${course.id}`}>
+                <div className="flex items-center gap-3 mb-2 flex-wrap">
+                  <Link href={canManage ? `/courses/${course.id}/manage` : `/courses/${course.id}`}>
                     <h3 className="text-lg font-semibold text-gray-900 hover:text-blue-600 transition-colors">
                       {course.title}
                     </h3>
@@ -82,7 +84,7 @@ export default function CourseListView({
                   <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
                     {course.shortName}
                   </span>
-                  {course.status === 'DRAFT' && isTeacher && (
+                  {course.status === 'DRAFT' && canManage && (
                     <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded">
                       Draft
                     </span>
@@ -139,24 +141,25 @@ export default function CourseListView({
                   )}
                 </div>
                 
-                {isTeacher && (
+                {/* Management Section - For Admin and Teacher */}
+                {canManage && (
                   <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
                     <p className="text-xs text-gray-500">
                       Primary Instructor: {getInstructorNames(course)}
                     </p>
                     <Link
-                      href={`/teacher/courses/${course.id}/manage`}
+                      href={`/courses/${course.id}/manage`}
                       className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
                     >
                       <Settings size={12} />
-                      Manage Content
+                      Manage Course Content
                     </Link>
                   </div>
                 )}
               </div>
               
-              {/* Actions - only for teachers */}
-              {isTeacher && (
+              {/* Actions - for Admin and Teacher */}
+              {canManage && (
                 <CourseActionMenu
                   courseId={course.id}
                   courseTitle={course.title}

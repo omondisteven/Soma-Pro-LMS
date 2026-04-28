@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getUserFromToken } from '@/lib/auth'
 
+// app/api/courses/route.ts - Update authorization
 export async function GET(request: NextRequest) {
   const token = request.headers.get('authorization')?.replace('Bearer ', '')
   const user = await getUserFromToken(token)
@@ -14,32 +15,9 @@ export async function GET(request: NextRequest) {
   try {
     let courses: any[] = []
 
-    // ================= ADMIN =================
-    if (user.role === 'ADMIN') {
+    // ================= ADMIN & TEACHER =================
+    if (user.role === 'ADMIN' || user.role === 'TEACHER') {
       courses = await prisma.course.findMany({
-        include: {
-          owner: true,
-          instructors: {
-            include: { instructor: true }
-          },
-          enrollments: true,
-          _count: {
-            select: { enrollments: true, sections: true }
-          }
-        },
-        orderBy: { createdAt: 'desc' }
-      })
-    }
-
-    // ================= TEACHER =================
-    else if (user.role === 'TEACHER') {
-      courses = await prisma.course.findMany({
-        where: {
-          OR: [
-            { ownerId: user.id },
-            { instructors: { some: { instructorId: user.id } } }
-          ]
-        },
         include: {
           owner: true,
           instructors: {

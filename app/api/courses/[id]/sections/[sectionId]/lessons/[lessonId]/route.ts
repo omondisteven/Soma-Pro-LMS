@@ -1,3 +1,4 @@
+// app/api/courses/[id]/sections/[sectionId]/lessons/[lessonId]/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getUserFromToken } from '@/lib/auth'
