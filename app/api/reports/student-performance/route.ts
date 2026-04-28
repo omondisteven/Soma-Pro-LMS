@@ -1,3 +1,4 @@
+// app\api\reports\student-performance\route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getUserFromToken } from '@/lib/auth'
@@ -6,7 +7,7 @@ export async function GET(request: NextRequest) {
   const token = request.headers.get('authorization')?.replace('Bearer ', '')
   const user = await getUserFromToken(token)
   
-  if (!user || user.role !== 'TEACHER') {
+  if (!user || !['TEACHER', 'ADMIN'].includes(user.role)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   
@@ -15,18 +16,23 @@ export async function GET(request: NextRequest) {
   
   try {
     // Get courses where user is instructor or owner
-    const courses = await prisma.course.findMany({
-      where: {
+  const courseWhere =
+  user.role === 'ADMIN'
+    ? {}
+    : {
         OR: [
           { ownerId: user.id },
           { instructors: { some: { instructorId: user.id } } }
         ]
-      },
-      select: {
-        id: true,
-        title: true
       }
-    })
+
+  const courses = await prisma.course.findMany({
+    where: courseWhere,
+    select: {
+      id: true,
+      title: true
+    }
+  })
     
     let students: any[] = []
     
