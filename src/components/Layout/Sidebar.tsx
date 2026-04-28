@@ -1,3 +1,4 @@
+// src\components\Layout\Sidebar.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -305,10 +306,21 @@ export default function Sidebar({ userRole }: SidebarProps) {
                       <PieChart size={16} />
                       <span className="font-normal">Grade Distribution</span>
                     </Link>
-                    <Link href="/reports/finance" onClick={handleLinkClick} className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
-                      <DollarSign size={16} />
-                      <span className="font-normal">Financial Reports</span>
-                    </Link>
+                    {isAdmin && (
+                      <>
+                        <div className="border-t border-gray-700 my-2"></div>
+                        <p className="text-xs text-gray-400 px-3 mt-2">Admin Reports</p>
+
+                        <Link
+                          href="/admin/finance"
+                          onClick={handleLinkClick}
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
+                        >
+                          <DollarSign size={16} />
+                          <span>Financial Reports</span>
+                        </Link>
+                      </>
+                    )}
                   </>
                 )}
                 
