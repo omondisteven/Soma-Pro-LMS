@@ -25,7 +25,7 @@ export default function HomePage() {
             <div className="flex items-center">
               <BookOpen className="h-8 w-8 text-blue-600" />
               <span className="ml-2 text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Cps-LMS
+                Cps-SomaPRO LMS
               </span>
             </div>
             <div className="flex items-center gap-4">
@@ -52,7 +52,6 @@ export default function HomePage() {
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
             A modern learning management system for teachers and students. Create courses, track progress, and achieve your learning goals.
           </p>
-          // Change the buttons section to only show Sign In
           <div className="flex gap-4 justify-center">
             <Link href="/login" className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center gap-2">
               Sign In
