@@ -8,7 +8,23 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'CPS-SomaPRO - Learning Management System',
-  description: 'Modern LMS for online education',
+  description: 'Modern LMS for online education by Teevos Solutions',
+  authors: [{ name: 'Teevos Solutions' }],
+  creator: 'Teevos Solutions',
+  publisher: 'Teevos Solutions',
+  applicationName: 'CPS-SomaPRO',
+  keywords: ['LMS', 'Learning Management System', 'Education', 'Online Learning'],
+  openGraph: {
+    title: 'CPS-SomaPRO - Learning Management System',
+    description: 'Modern LMS for online education by Teevos Solutions',
+    type: 'website',
+  },
+}
+
+// Custom metadata extended properties
+export const customMetadata = {
+  licensedTo: 'CPS Institute',
+  developedBy: 'Teevos Solutions',
 }
 
 export const viewport: Viewport = {
