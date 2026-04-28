@@ -65,7 +65,7 @@ export default function AuthenticatedLayout({
     if (path?.startsWith('/teacher/courses/')) return 'Manage Course'
     if (path?.startsWith('/teacher/students/')) return 'Student Details'
     if (path?.startsWith('/reports')) return 'Reports'
-    return 'SomaPRO'
+    return 'CPS-SomaPRO'
   }
 
   return (

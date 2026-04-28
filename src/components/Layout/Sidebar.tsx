@@ -96,7 +96,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-              SomaPRO
+              CPS-SomaPRO
             </h1>
             <p className="text-xs text-gray-400 mt-0.5">Learning Management System</p>
           </div>
@@ -468,6 +468,13 @@ export default function Sidebar({ userRole }: SidebarProps) {
           </div>
         )}
       </nav>
+
+      {/* Copyright Footer */}
+      <div className="p-3 border-t border-gray-700 flex-shrink-0">
+        <p className="text-[10px] text-gray-500 text-right">
+          Developed by © 2026 TEEVOS SOLUTIONS
+        </p>
+      </div>
     </>
   )
 

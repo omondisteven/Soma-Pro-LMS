@@ -16,7 +16,7 @@ export default function MobileHeader() {
         {isOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
       <div className="flex-1 text-center">
-        <h1 className="text-lg font-semibold text-gray-800">SomaPRO</h1>
+        <h1 className="text-lg font-semibold text-gray-800">CPS-SomaPRO</h1>
       </div>
       <div className="w-10" />
     </div>
