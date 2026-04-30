@@ -1,3 +1,4 @@
+// prisma\seed.js
 const { PrismaClient } = require('@prisma/client')
 const bcrypt = require('bcryptjs')
 
@@ -20,6 +21,21 @@ async function main() {
     },
   })
   console.log('✅ Admin user created:', admin.email)
+
+  // Create second admin user
+  const semeonPassword = await bcrypt.hash('Semeon@123', 10)
+  const semeon = await prisma.user.upsert({
+    where: { email: 'semeon@somapro.com' },
+    update: {},
+    create: {
+      email: 'semeon@somapro.com',
+      password: semeonPassword,
+      name: 'Semeon Onyango',
+      role: 'ADMIN',
+      highSchoolCompleted: false,
+    },
+  })
+  console.log('✅ Semeon user created:', semeon.email)
 
   // Create a sample manager user
   try {
@@ -75,6 +91,7 @@ async function main() {
   console.log('🌱 Seeding complete!')
   console.log('📝 Login credentials:')
   console.log('   Admin: admin@somapro.com / Admin@123')
+  console.log('   Admin2: semeon@somapro.com / Semeon@123')
   console.log('   Manager: manager@somapro.com / Manager@123')
   console.log('   Teacher: teacher@somapro.com / Teacher@123')
   console.log('   Student: student@somapro.com / Student@123')
