@@ -57,16 +57,16 @@ export default function Sidebar({ userRole }: SidebarProps) {
   const menuItemClass = (isActive: boolean) => `
     flex items-center gap-2.5 px-3 py-2 mx-2 rounded-lg transition-all text-sm
     ${isActive 
-      ? 'bg-blue-500/20 text-blue-300 border-l-2 border-blue-400' 
-      : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+      ? 'bg-blue-500/20 text-yellow-300 border-l-2 border-red-400' 
+      : 'text-gray-300 hover:bg-red-700 hover:text-white'
     }
   `
 
   const subMenuItemClass = (isActive: boolean) => `
     flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-sm
     ${isActive 
-      ? 'bg-blue-500/15 text-blue-300 border-l-2 border-blue-400' 
-      : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+      ? 'bg-blue-500/15 text-yellow-300 border-l-2 border-red-400' 
+      : 'text-gray-300 hover:bg-red-700 hover:text-white'
     }
   `
 
@@ -95,10 +95,10 @@ export default function Sidebar({ userRole }: SidebarProps) {
       <div className="p-4 border-b border-gray-700 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+            <h1 className="text-xl font-bold bg-gradient-to-r from-red-400 to-yellow-500 bg-clip-text text-transparent">
               CPS-SomaPRO
             </h1>
-            <p className="text-xs text-gray-400 mt-0.5">Learning Management System</p>
+            <p className="text-xs text-yellow-400 mt-0.5">Learning Management System</p>
           </div>
           {isMobile && (
             <button 
@@ -141,8 +141,8 @@ export default function Sidebar({ userRole }: SidebarProps) {
                 onClick={() => handleSectionToggle('teachers')}
                 className={`w-full flex items-center justify-between px-3 py-2 mx-2 rounded-lg transition-all text-sm ${
                   isSectionActive(['/admin/teachers', '/admin/assign-course'])
-                    ? 'bg-blue-500/20 text-blue-300'
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                    ? 'bg-red-500/20 text-red-300'
+                    : 'text-gray-300 hover:bg-red-700 hover:text-white'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
@@ -178,8 +178,8 @@ export default function Sidebar({ userRole }: SidebarProps) {
                 onClick={() => handleSectionToggle('students')}
                 className={`w-full flex items-center justify-between px-3 py-2 mx-2 rounded-lg transition-all text-sm ${
                   isSectionActive(['/admin/students', '/admin/enroll-students'])
-                    ? 'bg-blue-500/20 text-blue-300'
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                    ? 'bg-red-500/20 text-red-300'
+                    : 'text-gray-300 hover:bg-red-700 hover:text-white'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
@@ -230,8 +230,8 @@ export default function Sidebar({ userRole }: SidebarProps) {
               onClick={() => handleSectionToggle('courses')}
               className={`w-full flex items-center justify-between px-3 py-2 mx-2 rounded-lg transition-all text-sm ${
                 isSectionActive(['/courses', '/courses/public'])
-                  ? 'bg-blue-500/20 text-blue-300'
-                  : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  ? 'bg-red-500/20 text-yellow-300'
+                  : 'text-gray-300 hover:bg-red-700 hover:text-white'
               }`}
             >
               <div className="flex items-center gap-2.5">
@@ -269,8 +269,8 @@ export default function Sidebar({ userRole }: SidebarProps) {
               onClick={() => handleSectionToggle('courseManagement')}
               className={`w-full flex items-center justify-between px-3 py-2 mx-2 rounded-lg transition-all text-sm ${
                 expandedSection === 'courseManagement'
-                  ? 'bg-blue-500/20 text-blue-300'
-                  : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  ? 'bg-red-500/20 text-yellow-300'
+                  : 'text-gray-300 hover:bg-red-700 hover:text-white'
               }`}
             >
               <div className="flex items-center gap-2.5">
@@ -366,8 +366,8 @@ export default function Sidebar({ userRole }: SidebarProps) {
                   '/reports/grades',
                   '/reports/assignments'
                 ])
-                  ? 'bg-blue-500/20 text-blue-300'
-                  : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  ? 'bg-red-500/20 text-yellow-300'
+                  : 'text-gray-300 hover:bg-red-700 hover:text-white'
               }`}
             >
               <div className="flex items-center gap-2.5">
