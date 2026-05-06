@@ -93,7 +93,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
       <div className="p-4 border-b border-maroon-700/50 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
+            <h1 className="text-xl font-bold bg-gradient-to-r from-red-400 to-yellow-500 bg-clip-text text-transparent">
               CPS-SomaPRO
             </h1>
             <p className="text-xs text-yellow-400/80 mt-0.5">Learning Management System</p>
