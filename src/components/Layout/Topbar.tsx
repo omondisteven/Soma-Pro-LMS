@@ -30,7 +30,7 @@ export default function Topbar({ userName, userAvatar, pageTitle }: TopbarProps)
   }
 
   return (
-    <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-3 md:px-8 sticky top-0 z-30">
+    <header className="bg-red-600 border-b border-gray-200 h-16 flex items-center justify-between px-3 md:px-8 sticky top-0 z-30">
       {/* Left section */}
       <div className="flex items-center gap-2 md:gap-4">
         <div className={`${isSearchOpen ? 'hidden sm:block' : 'block'}`}>

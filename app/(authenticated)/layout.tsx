@@ -68,7 +68,7 @@ export default function AuthenticatedLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-red-50">
       {/* Sidebar - fixed on desktop */}
       <Sidebar userRole={user.role} />
       
