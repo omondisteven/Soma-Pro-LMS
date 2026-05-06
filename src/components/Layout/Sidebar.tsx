@@ -31,7 +31,6 @@ interface SidebarProps {
 
 export default function Sidebar({ userRole }: SidebarProps) {
   const pathname = usePathname()
-  // Track which section is expanded - only one at a time
   const [expandedSection, setExpandedSection] = useState<string | null>(null)
   const [isMobile, setIsMobile] = useState(false)
   const { isOpen, closeSidebar } = useSidebar()
@@ -49,24 +48,24 @@ export default function Sidebar({ userRole }: SidebarProps) {
     return pathname === href || pathname?.startsWith(href + '/')
   }
 
-  // Check if any subitem in a section is active
   const isSectionActive = (sectionPaths: string[]) => {
     return sectionPaths.some(path => pathname?.startsWith(path))
   }
 
+  // Maroon theme menu item classes for Tailwind v4
   const menuItemClass = (isActive: boolean) => `
     flex items-center gap-2.5 px-3 py-2 mx-2 rounded-lg transition-all text-sm
     ${isActive 
-      ? 'bg-blue-500/20 text-yellow-300 border-l-2 border-red-400' 
-      : 'text-gray-300 hover:bg-red-700 hover:text-white'
+      ? 'bg-maroon-700/50 text-yellow-300 border-l-2 border-yellow-500' 
+      : 'text-yellow-100/70 hover:bg-maroon-700/50 hover:text-yellow-200'
     }
   `
 
   const subMenuItemClass = (isActive: boolean) => `
     flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-sm
     ${isActive 
-      ? 'bg-blue-500/15 text-yellow-300 border-l-2 border-red-400' 
-      : 'text-gray-300 hover:bg-red-700 hover:text-white'
+      ? 'bg-maroon-700/40 text-yellow-300 border-l-2 border-yellow-500' 
+      : 'text-yellow-100/70 hover:bg-maroon-700/40 hover:text-yellow-200'
     }
   `
 
@@ -76,7 +75,6 @@ export default function Sidebar({ userRole }: SidebarProps) {
     }
   }
 
-  // Handle section expansion - closes other sections
   const handleSectionToggle = (section: string) => {
     if (expandedSection === section) {
       setExpandedSection(null)
@@ -92,18 +90,18 @@ export default function Sidebar({ userRole }: SidebarProps) {
 
   const sidebarContent = (
     <>
-      <div className="p-4 border-b border-gray-700 flex-shrink-0">
+      <div className="p-4 border-b border-maroon-700/50 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-red-400 to-yellow-500 bg-clip-text text-transparent">
+            <h1 className="text-xl font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
               CPS-SomaPRO
             </h1>
-            <p className="text-xs text-yellow-400 mt-0.5">Learning Management System</p>
+            <p className="text-xs text-yellow-400/80 mt-0.5">Learning Management System</p>
           </div>
           {isMobile && (
             <button 
               onClick={closeSidebar}
-              className="p-2 hover:bg-gray-700 rounded-lg text-gray-400"
+              className="p-2 hover:bg-maroon-700/50 rounded-lg text-yellow-200"
             >
               <X size={20} />
             </button>
@@ -125,7 +123,6 @@ export default function Sidebar({ userRole }: SidebarProps) {
         {/* Admin Section */}
         {isAdmin && (
           <>
-            {/* Manage Courses - Direct link */}
             <Link
               href="/courses"
               onClick={handleLinkClick}
@@ -141,8 +138,8 @@ export default function Sidebar({ userRole }: SidebarProps) {
                 onClick={() => handleSectionToggle('teachers')}
                 className={`w-full flex items-center justify-between px-3 py-2 mx-2 rounded-lg transition-all text-sm ${
                   isSectionActive(['/admin/teachers', '/admin/assign-course'])
-                    ? 'bg-red-500/20 text-red-300'
-                    : 'text-gray-300 hover:bg-red-700 hover:text-white'
+                    ? 'bg-maroon-700/50 text-yellow-300'
+                    : 'text-yellow-100/70 hover:bg-maroon-700/50 hover:text-yellow-200'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
@@ -178,8 +175,8 @@ export default function Sidebar({ userRole }: SidebarProps) {
                 onClick={() => handleSectionToggle('students')}
                 className={`w-full flex items-center justify-between px-3 py-2 mx-2 rounded-lg transition-all text-sm ${
                   isSectionActive(['/admin/students', '/admin/enroll-students'])
-                    ? 'bg-red-500/20 text-red-300'
-                    : 'text-gray-300 hover:bg-red-700 hover:text-white'
+                    ? 'bg-maroon-700/50 text-yellow-300'
+                    : 'text-yellow-100/70 hover:bg-maroon-700/50 hover:text-yellow-200'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
@@ -211,7 +208,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
           </>
         )}
 
-        {/* User Management - MANAGER only (simplified) */}
+        {/* User Management - MANAGER only */}
         {isManager && (
           <Link
             href="/admin/users"
@@ -230,8 +227,8 @@ export default function Sidebar({ userRole }: SidebarProps) {
               onClick={() => handleSectionToggle('courses')}
               className={`w-full flex items-center justify-between px-3 py-2 mx-2 rounded-lg transition-all text-sm ${
                 isSectionActive(['/courses', '/courses/public'])
-                  ? 'bg-red-500/20 text-yellow-300'
-                  : 'text-gray-300 hover:bg-red-700 hover:text-white'
+                  ? 'bg-maroon-700/50 text-yellow-300'
+                  : 'text-yellow-100/70 hover:bg-maroon-700/50 hover:text-yellow-200'
               }`}
             >
               <div className="flex items-center gap-2.5">
@@ -262,15 +259,15 @@ export default function Sidebar({ userRole }: SidebarProps) {
           </div>
         )}
 
-        {/* Courses Section - For Teachers only (with Manage My Courses only) */}
+        {/* Courses Section - For Teachers only */}
         {isTeacher && (
           <div className="mt-2">
             <button
               onClick={() => handleSectionToggle('courseManagement')}
               className={`w-full flex items-center justify-between px-3 py-2 mx-2 rounded-lg transition-all text-sm ${
                 expandedSection === 'courseManagement'
-                  ? 'bg-red-500/20 text-yellow-300'
-                  : 'text-gray-300 hover:bg-red-700 hover:text-white'
+                  ? 'bg-maroon-700/50 text-yellow-300'
+                  : 'text-yellow-100/70 hover:bg-maroon-700/50 hover:text-yellow-200'
               }`}
             >
               <div className="flex items-center gap-2.5">
@@ -294,13 +291,9 @@ export default function Sidebar({ userRole }: SidebarProps) {
           </div>
         )}
 
-        {/* Reports Section - Moved to just above Settings */}
-        {/* This section will be rendered after all other main sections but before Settings */}
-
         {/* Other Menu Items for non-Admin */}
         {!isAdmin && (
           <div className="mt-2 space-y-0.5">
-            {/* Assignments - Only Students */}
             {isStudent && (
               <Link
                 href="/assignments"
@@ -312,7 +305,6 @@ export default function Sidebar({ userRole }: SidebarProps) {
               </Link>
             )}
             
-            {/* Grades - Only Students */}
             {isStudent && (
               <Link
                 href="/grades"
@@ -324,7 +316,6 @@ export default function Sidebar({ userRole }: SidebarProps) {
               </Link>
             )}
             
-            {/* Grading - Only Teachers */}
             {isTeacher && (
               <Link
                 href="/teacher/grading"
@@ -336,7 +327,6 @@ export default function Sidebar({ userRole }: SidebarProps) {
               </Link>
             )}
             
-            {/* Students Management - Only Teachers */}
             {isTeacher && (
               <Link
                 href="/students"
@@ -350,7 +340,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
           </div>
         )}
 
-        {/* Reports Section - For Admin, Teachers, and Students (moved here) */}
+        {/* Reports Section */}
         {(isAdmin || isTeacher || isStudent) && (
           <div className="mt-2">
             <button
@@ -366,8 +356,8 @@ export default function Sidebar({ userRole }: SidebarProps) {
                   '/reports/grades',
                   '/reports/assignments'
                 ])
-                  ? 'bg-red-500/20 text-yellow-300'
-                  : 'text-gray-300 hover:bg-red-700 hover:text-white'
+                  ? 'bg-maroon-700/50 text-yellow-300'
+                  : 'text-yellow-100/70 hover:bg-maroon-700/50 hover:text-yellow-200'
               }`}
             >
               <div className="flex items-center gap-2.5">
@@ -379,7 +369,6 @@ export default function Sidebar({ userRole }: SidebarProps) {
             
             {expandedSection === 'reports' && (
               <div className="ml-6 mt-0.5 space-y-0.5">
-                {/* Teacher Reports - For Admin and Teachers */}
                 {(isAdmin || isTeacher) && (
                   <>
                     <Link href="/reports/course-analytics" onClick={handleLinkClick} className={subMenuItemClass(pathname === '/reports/course-analytics')}>
@@ -400,9 +389,8 @@ export default function Sidebar({ userRole }: SidebarProps) {
                     </Link>
                     {isAdmin && (
                       <>
-                        <div className="border-t border-gray-700 my-2"></div>
-                        <p className="text-xs text-gray-400 px-3 mt-2">Admin Reports</p>
-
+                        <div className="border-t border-maroon-700/50 my-2"></div>
+                        <p className="text-xs text-yellow-400/60 px-3 mt-2">Admin Reports</p>
                         <Link
                           href="/admin/finance"
                           onClick={handleLinkClick}
@@ -415,12 +403,8 @@ export default function Sidebar({ userRole }: SidebarProps) {
                     )}
                   </>
                 )}     
-                {/* Student Reports - For Admin and Students */}
                 {(isAdmin || isStudent) && (
                   <>
-                    {(isAdmin && isTeacher) && (
-                      <div className="border-t border-gray-700 my-1"></div>
-                    )}
                     <Link href="/reports/progress" onClick={handleLinkClick} className={subMenuItemClass(pathname === '/reports/progress')}>
                       <TrendingUp size={16} />
                       <span className="font-normal">Progress Report</span>
@@ -440,38 +424,22 @@ export default function Sidebar({ userRole }: SidebarProps) {
           </div>
         )}
 
-        {/* Settings Section - Always at the bottom */}
-        {!isAdmin && (
-          <div className="mt-2 pt-2 border-t border-gray-700">
-            <Link
-              href="/settings"
-              onClick={handleLinkClick}
-              className={menuItemClass(pathname === '/settings')}
-            >
-              <Settings size={18} />
-              <span className="font-normal">Settings</span>
-            </Link>
-          </div>
-        )}
-
-        {/* Settings for Admin */}
-        {isAdmin && (
-          <div className="mt-2 pt-2 border-t border-gray-700">
-            <Link
-              href="/settings"
-              onClick={handleLinkClick}
-              className={menuItemClass(pathname === '/settings')}
-            >
-              <Settings size={18} />
-              <span className="font-normal">Settings</span>
-            </Link>
-          </div>
-        )}
+        {/* Settings Section */}
+        <div className="mt-2 pt-2 border-t border-maroon-700/50">
+          <Link
+            href="/settings"
+            onClick={handleLinkClick}
+            className={menuItemClass(pathname === '/settings')}
+          >
+            <Settings size={18} />
+            <span className="font-normal">Settings</span>
+          </Link>
+        </div>
       </nav>
 
       {/* Copyright Footer */}
-      <div className="p-3 border-t border-gray-700 flex-shrink-0">
-        <p className="text-[10px] text-gray-500 text-right">
+      <div className="p-3 border-t border-maroon-700/50 flex-shrink-0">
+        <p className="text-[10px] text-yellow-400/50 text-right">
           Developed by © 2026 TEEVOS SOLUTIONS
         </p>
       </div>
@@ -488,7 +456,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
           />
         )}
         
-        <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-gray-900 to-gray-800 text-white transform transition-transform duration-300 ease-in-out flex flex-col ${
+        <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-maroon-900 to-maroon-800 text-yellow-100 transform transition-transform duration-300 ease-in-out flex flex-col ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}>
           {sidebarContent}
@@ -498,7 +466,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
   }
 
   return (
-    <aside className="hidden lg:flex fixed top-0 left-0 h-full w-56 bg-gradient-to-b from-gray-900 to-gray-800 text-white flex-col shadow-xl z-20">
+    <aside className="hidden lg:flex fixed top-0 left-0 h-full w-56 bg-gradient-to-b from-maroon-900 to-maroon-800 text-yellow-100 flex-col shadow-xl z-20">
       {sidebarContent}
     </aside>
   )

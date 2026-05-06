@@ -1,3 +1,4 @@
+// app/(authenticated)/layout.tsx
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -32,7 +33,6 @@ export default function AuthenticatedLayout({
     setLoading(false)
   }, [router])
 
-  // Don't show layout on auth pages
   const isAuthPage = pathname === '/login' || pathname === '/register'
   if (isAuthPage) {
     return <>{children}</>
@@ -41,7 +41,7 @@ export default function AuthenticatedLayout({
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
       </div>
     )
   }
@@ -68,18 +68,14 @@ export default function AuthenticatedLayout({
   }
 
   return (
-    <div className="min-h-screen bg-red-700 text-yellow-900">
-      {/* Sidebar - fixed on desktop */}
+    <div className="min-h-screen bg-red-50">
       <Sidebar userRole={user.role} />
       
-      {/* Main Content Area - with margin on desktop to account for sidebar */}
       <div className="lg:ml-56 flex flex-col min-h-screen">
-        {/* Mobile Header - visible on mobile only (reads user data from localStorage internally) */}
         <div className="lg:hidden">
           <MobileHeader />
         </div>
         
-        {/* Desktop Topbar - hidden on mobile */}
         <div className="hidden lg:block">
           <Topbar 
             userName={user.name} 
@@ -88,7 +84,6 @@ export default function AuthenticatedLayout({
           />
         </div>
         
-        {/* Page Content */}
         <main className={`flex-1 ${isMobile ? 'mt-14' : ''}`}>
           <div className="p-4 md:p-6 lg:p-8">
             {children}
