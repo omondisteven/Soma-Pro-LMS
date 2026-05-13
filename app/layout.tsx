@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import { SidebarProvider } from '@/context/SidebarContext'
 import './globals.css'
+import PayPalScript from '@/components/PayPalScript'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -45,6 +46,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <SidebarProvider>
           {children}
+          <PayPalScript />
         </SidebarProvider>
       </body>
     </html>

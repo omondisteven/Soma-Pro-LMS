@@ -1,4 +1,4 @@
-// app\(authenticated)\checkout\page.tsx
+// app/(authenticated)/checkout/page.tsx
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -15,6 +15,7 @@ import {
   CheckCircle,
   AlertCircle
 } from 'lucide-react'
+import PayPalButton from '@/components/PayPalButton'
 
 interface Course {
   id: string
@@ -29,6 +30,12 @@ interface Application {
   id: string
   status: string
   totalPaid: number
+}
+
+// PayPal Hosted Button IDs (configure these in your PayPal dashboard)
+const PAYPAL_BUTTON_IDS = {
+  full: process.env.NEXT_PUBLIC_PAYPAL_FULL_BUTTON_ID || '84VZ8X823HNVJ',
+  partial: process.env.NEXT_PUBLIC_PAYPAL_PARTIAL_BUTTON_ID || '', // Add partial payment button ID if needed
 }
 
 // Helper function to format phone number to international format
@@ -63,7 +70,7 @@ export default function CheckoutPage() {
   const [paymentType, setPaymentType] = useState<'full' | 'partial'>('full')
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [paymentSuccess, setPaymentSuccess] = useState(false) // Renamed from paymentStatus to avoid confusion
+  const [paymentSuccess, setPaymentSuccess] = useState(false)
 
   const [cashReference, setCashReference] = useState('')
   const [cashError, setCashError] = useState('')
@@ -262,118 +269,30 @@ export default function CheckoutPage() {
     }
   }
 
-  const handlePayPalPayment = async () => {
-    setProcessing(true)
-    setError(null)
-    const token = localStorage.getItem('token')
+  const handlePayPalSuccess = async () => {
+    setPaymentSuccess(true)
+    setSuccess(true)
+    setProcessing(false)
     
-    try {
-      const response = await fetch('/api/payments/paypal/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          courseId,
-          amount: paymentAmount,
-          paymentType,
-          email
-        })
-      })
-      
-      const data = await response.json()
-      if (data.id) {
-        const approvalUrl = data.links?.find((l: any) => l.rel === 'approve')?.href
-        if (approvalUrl) {
-          window.location.href = approvalUrl
-        } else {
-          setError('Failed to create PayPal order')
-          setProcessing(false)
-        }
-      }
-    } catch (error) {
-      console.error('PayPal error:', error)
-      setError('Payment failed. Please try again.')
-      setProcessing(false)
-    }
+    toast.success('PayPal payment successful!')
+    
+    setTimeout(() => {
+      router.push('/courses')
+    }, 3000)
   }
 
-  const handlePayment = async () => {
-    if (!selectedMethod) {
-      setError('Please select a payment method')
-      return
-    }
-
-    if (selectedMethod === 'MPESA') {
-      if (!phoneNumber) {
-        setError('Please enter your M-Pesa phone number')
-        return
-      }
-      if (!validatePhoneNumber(phoneNumber)) {
-        setError('Please enter a valid phone number')
-        return
-      }
-      await handleMpesaPayment()
-
-    } else if (selectedMethod === 'STRIPE') {
-      if (!email) {
-        setError('Please enter your email address')
-        return
-      }
-      await handleStripePayment()
-
-    } else if (selectedMethod === 'PAYPAL') {
-      if (!email) {
-        setError('Please enter your email address')
-        return
-      }
-      await handlePayPalPayment()
-
-    } else if (selectedMethod === 'CASH') {
-      if (!cashReference) {
-        setError('Please enter receipt/reference number')
-        return
-      }
-
-      setProcessing(true)
-
-      try {
-        const token = localStorage.getItem('token')
-
-        const res = await fetch('/api/payments/cash', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            courseId,
-            amount: paymentAmount,
-            reference: cashReference
-          })
-        })
-
-        const data = await res.json()
-
-        if (!res.ok) throw new Error(data.error)
-
-        toast.success('Payment submitted for verification')
-        setSuccess(true)
-
-        setTimeout(() => {
-          router.push('/courses')
-        }, 3000)
-
-      } catch (err: any) {
-        setError(err.message || 'Cash payment failed')
-      } finally {
-        setProcessing(false)
-      }
-    }
+  const handlePayPalError = (error: any) => {
+    console.error('PayPal error:', error)
+    setError('PayPal payment failed. Please try again.')
+    setProcessing(false)
   }
 
   const handleCashPayment = async () => {
+    if (!cashReference) {
+      setError('Please enter receipt/reference number')
+      return
+    }
+
     setProcessing(true)
     setError(null)
 
@@ -401,7 +320,6 @@ export default function CheckoutPage() {
       }
 
       toast.success('Payment recorded. Awaiting verification.')
-
       setSuccess(true)
 
       setTimeout(() => {
@@ -415,11 +333,59 @@ export default function CheckoutPage() {
     }
   }
 
+  const handlePayment = async () => {
+    if (!selectedMethod) {
+      setError('Please select a payment method')
+      return
+    }
+
+    // For PayPal Hosted Buttons, we don't call the API directly
+    // The button handles the payment itself
+    if (selectedMethod === 'PAYPAL') {
+      if (!email) {
+        setError('Please enter your email address')
+        return
+      }
+      // PayPal button will be rendered and handle payment
+      // No API call here
+      return
+    }
+
+    if (selectedMethod === 'MPESA') {
+      if (!phoneNumber) {
+        setError('Please enter your M-Pesa phone number')
+        return
+      }
+      if (!validatePhoneNumber(phoneNumber)) {
+        setError('Please enter a valid phone number')
+        return
+      }
+      await handleMpesaPayment()
+
+    } else if (selectedMethod === 'STRIPE') {
+      if (!email) {
+        setError('Please enter your email address')
+        return
+      }
+      await handleStripePayment()
+
+    } else if (selectedMethod === 'CASH') {
+      await handleCashPayment()
+    }
+  }
+
+  // Determine which PayPal button ID to use
+  const getPayPalButtonId = () => {
+    if (paymentType === 'full') {
+      return PAYPAL_BUTTON_IDS.full
+    }
+    return PAYPAL_BUTTON_IDS.partial || PAYPAL_BUTTON_IDS.full
+  }
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-maroon-600" />
       </div>
     )
   }
@@ -431,7 +397,7 @@ export default function CheckoutPage() {
         <p className="text-gray-600 mb-6">The course you're looking for doesn't exist or you don't have access.</p>
         <button
           onClick={() => router.push('/courses/public')}
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+          className="bg-maroon-600 text-yellow-400 px-6 py-2 rounded-lg hover:bg-maroon-700"
         >
           Browse Courses
         </button>
@@ -445,11 +411,13 @@ export default function CheckoutPage() {
         <div className="bg-green-50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
           <CheckCircle size={48} className="text-green-600" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Payment Initiated!</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Payment Successful!</h2>
         <p className="text-gray-600 mb-4">
           {selectedMethod === 'MPESA' 
-            ? 'Please check your phone and enter your M-Pesa PIN to complete the payment.'
-            : 'Your payment is being processed.'}
+            ? 'Your M-Pesa payment has been processed successfully.'
+            : selectedMethod === 'PAYPAL'
+            ? 'Your PayPal payment has been completed successfully.'
+            : 'Your payment has been recorded.'}
         </p>
         <p className="text-sm text-gray-500">You will be redirected shortly...</p>
       </div>
@@ -496,7 +464,7 @@ export default function CheckoutPage() {
             
             <div className="flex justify-between pt-2">
               <p className="font-semibold text-gray-900">Amount Due</p>
-              <p className="font-bold text-2xl text-blue-600">
+              <p className="font-bold text-2xl text-maroon-600">
                 {course.currency} {remainingAmount.toLocaleString()}
               </p>
             </div>
@@ -558,7 +526,7 @@ export default function CheckoutPage() {
                     min={minPartialAmount}
                     max={remainingAmount}
                     step={100}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-maroon-500"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Minimum: {course.currency} {minPartialAmount.toLocaleString()} | Maximum: {course.currency} {remainingAmount.toLocaleString()}
@@ -602,7 +570,7 @@ export default function CheckoutPage() {
               </div>
             </label>
             
-            {/* PayPal */}
+            {/* PayPal - Using Hosted Buttons */}
             <label className="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
               <input
                 type="radio"
@@ -677,7 +645,7 @@ export default function CheckoutPage() {
                 value={phoneNumber}
                 onChange={handlePhoneChange}
                 placeholder="0722123456 or 254722123456"
-                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-maroon-500 ${
                   phoneError ? 'border-red-500' : 'border-gray-300'
                 }`}
               />
@@ -701,9 +669,28 @@ export default function CheckoutPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-maroon-500"
               />
               <p className="text-xs text-gray-500 mt-1">Receipt will be sent to this email</p>
+            </div>
+          )}
+
+          {/* PayPal Hosted Button */}
+          {selectedMethod === 'PAYPAL' && (
+            <div className="mb-6">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                <p className="text-sm text-yellow-800">
+                  <strong>PayPal Checkout</strong>
+                </p>
+                <p className="text-xs text-yellow-700 mt-1">
+                  You will be redirected to PayPal to complete your payment securely.
+                </p>
+              </div>
+              <PayPalButton
+                hostedButtonId={getPayPalButtonId()}
+                onSuccess={handlePayPalSuccess}
+                onError={handlePayPalError}
+              />
             </div>
           )}
 
@@ -718,7 +705,7 @@ export default function CheckoutPage() {
                 value={cashReference}
                 onChange={(e) => setCashReference(e.target.value)}
                 placeholder="Enter receipt or bank reference"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-maroon-500"
               />
               <p className="text-xs text-gray-500 mt-1">
                 Required for verification during approval
@@ -726,23 +713,26 @@ export default function CheckoutPage() {
             </div>
           )}
 
-          <button
-            onClick={handlePayment}
-            disabled={processing || paymentAmount <= 0}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-          >
-            {processing ? (
-              <>
-                <Loader2 size={20} className="animate-spin" />
-                Processing...
-              </>
-            ) : (
-              <>
-                <Lock size={18} />
-                Pay {course.currency} {paymentAmount.toLocaleString()}
-              </>
-            )}
-          </button>
+          {/* Payment Button (for non-PayPal methods) */}
+          {selectedMethod !== 'PAYPAL' && (
+            <button
+              onClick={handlePayment}
+              disabled={processing || paymentAmount <= 0}
+              className="w-full bg-maroon-600 text-yellow-400 py-3 rounded-lg hover:bg-maroon-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {processing ? (
+                <>
+                  <Loader2 size={20} className="animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Lock size={18} />
+                  Pay {course.currency} {paymentAmount.toLocaleString()}
+                </>
+              )}
+            </button>
+          )}
 
           <div className="flex items-center justify-center gap-2 mt-4 text-xs text-gray-500">
             <Shield size={14} />

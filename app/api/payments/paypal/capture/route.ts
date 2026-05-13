@@ -1,3 +1,4 @@
+// app/api/payments/paypal/capture/route.ts
 import { prisma } from "@/lib/prisma"
 
 // app/api/payments/paypal/capture/route.ts
